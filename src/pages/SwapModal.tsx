@@ -22,8 +22,6 @@ export const SwapModal = (props: any): JSX.Element => {
   const [swapLoading, setSwapLoading] = useState(false);
   const [testNetwork, setTestNetwork] = useState('');
   const [actionType, setActionType] = useState('');
-  const ethBridgeAddress = networks[FromNetwork].addresses.ETH_BRIDGE;
-  const bscBridgeAddress = networks[ToNetwork].addresses.BSC_BRIDGE;
 
   const doApproveSeasonToken = async () => {
     if (address === '')
