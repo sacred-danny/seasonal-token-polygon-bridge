@@ -13,7 +13,7 @@ const ethWeb3 = new Web3(chains[FromNetwork].rpcUrls[0]);
 
 const bscWeb3 = new Web3(chains[ToNetwork].rpcUrls[0]);
 
-const bscSeasonalContracts = Object.keys(networks[ToNetwork].addresses).reduce((prev:any, season: string)=>{
+const polygonSeasonalContracts = Object.keys(networks[ToNetwork].addresses).reduce((prev:any, season: string)=>{
     prev[season] = new bscWeb3.eth.Contract(contractABIs[season], networks[ToNetwork].addresses[season]);
     return prev;
 }, {});
@@ -34,32 +34,32 @@ export const SeasonalTokens: {[key: string]:SeasonalToken} = {
     SPRING : {
         name: 'SPRING',
         ethContract: ethSeasonalContracts.SPRING,
-        bscContract: bscSeasonalContracts.SPRING,
+        polygonContract: polygonSeasonalContracts.SPRING,
         img: springImg,
     },
     SUMMER : {
         name: 'SUMMER',
         ethContract: ethSeasonalContracts.SUMMER,
-        bscContract: bscSeasonalContracts.SUMMER,
+        polygonContract: polygonSeasonalContracts.SUMMER,
         img: summerImg,
     },
     AUTUMN : {
         name: 'AUTUMN',
         ethContract: ethSeasonalContracts.AUTUMN,
-        bscContract: bscSeasonalContracts.AUTUMN,
+        polygonContract: polygonSeasonalContracts.AUTUMN,
         img: autumnImg,
     },
     WINTER : {
         name: 'WINTER',
         ethContract: ethSeasonalContracts.WINTER,
-        bscContract: bscSeasonalContracts.WINTER,
+        polygonContract: polygonSeasonalContracts.WINTER,
         img: winterImg,
     },
 };
 
 export const SwapTypes: {[key: string]:string} = {
-    ETH_TO_BSC: 'eth-bsc',
-    BSC_TO_ETH: 'bsc-eth',
+    ETH_TO_POLYGON: 'eth-polygon',
+    POLYGON_TO_ETH: 'polygon-eth',
     BIG_AMOUNT: 'big_amount',
 }
 

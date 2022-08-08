@@ -100,7 +100,7 @@ export const networks: INetworks = {
     name: 'POLYGON Mainnet',
     isEnabled: true,
     addresses: {
-      SPRING: '0x70d59baa5ab360b2723dd561415bdbcd4435e1c4',
+      SPRING: '0x70d59baA5ab360b2723dD561415bdBcD4435E1C4',
       SUMMER: '0x4DF858CB94A329000895C34EAD6Db56f99511481',
       AUTUMN: '0x4DF858CB94A329000895C34EAD6Db56f99511481',
       WINTER: '0xf0a4c5b65317cE6Fed4E262E514DEC83837d146A',

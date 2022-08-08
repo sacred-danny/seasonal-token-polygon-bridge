@@ -29,11 +29,11 @@ export const SwapModal = (props: any): JSX.Element => {
     const fromAddress:string = networks[FromNetwork].addresses[props.season];
     const toAddress:string = networks[ToNetwork].addresses[props.season];
     // let seasonContract = getContract(FromNetwork, props.season);
-    // if (props.type === SwapTypes.ETH_TO_BSC) {
+    // if (props.type === SwapTypes.ETH_TO_POLYGON) {
     //   seasonContract = getContract(FromNetwork, props.season);
       // bridgeAddress = ethBridgeAddress;
     // }
-    // if (props.type === SwapTypes.BSC_TO_ETH) {
+    // if (props.type === SwapTypes.POLYGON_TO_ETH) {
     //   seasonContract = getContract(ToNetwork, props.season);
     //   bridgeAddress = bscBridgeAddress;
     // }
@@ -101,7 +101,7 @@ export const SwapModal = (props: any): JSX.Element => {
     let seasonAddress = networks[FromNetwork].addresses[props.season];
     const weiAmount = ethWeb3.utils.toWei(props.amount.toString(), 'ether');
     setSwapLoading(true);
-    if (props.type === SwapTypes.ETH_TO_BSC) {
+    if (props.type === SwapTypes.ETH_TO_POLYGON) {
       seasonAddress = networks[FromNetwork].addresses[props.season];
       try {
         await getContract(FromNetwork, 'ETH_BRIDGE').methods.swapFromEth(seasonAddress, weiAmount).send({from: address});
@@ -112,7 +112,7 @@ export const SwapModal = (props: any): JSX.Element => {
         dispatch(error(errorObj.message));
       }
     }
-    if (props.type === SwapTypes.BSC_TO_ETH) {
+    if (props.type === SwapTypes.POLYGON_TO_ETH) {
       seasonAddress = networks[ToNetwork].addresses[props.season];
       try {
         await getContract(ToNetwork, 'BSC_BRIDGE').methods.swapFromBsc(seasonAddress, weiAmount).send({from: address});
@@ -144,7 +144,7 @@ export const SwapModal = (props: any): JSX.Element => {
         <Box className="swap-modal" padding="20px">
           <Box className="text-center">
             {
-              props.type === SwapTypes.ETH_TO_BSC ? (
+              props.type === SwapTypes.ETH_TO_POLYGON ? (
                   <label className="text-30 font-bold flex justify-center items-center">Swap from <img src={networks[FromNetwork].logo} alt="ethereum" className="mx-20"/> ETH</label>) :
                 (<label className="text-30 font-bold flex justify-center items-center">Swap from <img src={networks[FromNetwork].logo} alt="ethereum" className="mx-20"/> BSC</label>)
             }

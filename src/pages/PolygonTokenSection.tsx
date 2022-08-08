@@ -14,7 +14,7 @@ const useStyles = makeStyles({
         },
     },
 });
-export const BscTokenSection = (props: any):JSX.Element => {
+export const PolygonTokenSection = (props: any):JSX.Element => {
 
   const tokenInputStyle = 'w-full bg-charCoal text-stormDust text-18 font-medium border-1 border-limedSqruce rounded-10 py-12 px-20 shadow-tokenOption outline-none appearance-none';
   const seasonOptionStyle = 'flex justify-between items-center w-full text-white text-18 font-medium border-1 border-limedSqruce py-12 px-20';
@@ -38,7 +38,7 @@ export const BscTokenSection = (props: any):JSX.Element => {
                     <img src={SeasonalTokens[season].img} className="w-30 h-30" alt={season}/>
                     <label className="mx-20">{season}</label>
                   </div>
-                  <label className="mr-20 overflow-hidden">{parseFloat(props.tokenAmounts[season].bscAmount).toLocaleString('en-US', { maximumFractionDigits: 2 })}</label>
+                  <label className="mr-20 overflow-hidden">{parseFloat(props.tokenAmounts[season].polygonAmount).toLocaleString('en-US', { maximumFractionDigits: 2 })}</label>
                 </div>
               </MenuItem>;
             })

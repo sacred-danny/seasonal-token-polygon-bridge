@@ -8,7 +8,7 @@ import { Layout } from './layout';
 import { SwapModal } from './pages/SwapModal';
 import { LoadingModal } from './pages/LoadingModal';
 import { EthTokenSection } from './pages/EthTokenSection';
-import { BscTokenSection } from './pages/BscTokenSection';
+import { PolygonTokenSection } from './pages/PolygonTokenSection';
 import { useWeb3Context } from './hooks/web3Context';
 import { networks, FromNetwork, ToNetwork } from './networks';
 import Messages from './components/Messages/Messages';
@@ -24,7 +24,7 @@ export const App = (): JSX.Element => {
   const activeButtonStyle = 'max-w-250 bg-squash hover:bg-artySkyBlue text-white text-1em rounded-7 shadow-skyblue px-28 py-10 font-medium w-full flex justify-between uppercase items-center m-20';
   const defaultButtonStyle = 'max-w-250 bg-artySkyBlue hover:bg-squash text-white text-1em rounded-7 shadow-squash px-28 py-10 font-medium w-full flex justify-between uppercase items-center m-20';
   const [seasonTokenAmounts, setSeasonalTokenAmounts] = useState(Object.keys(SeasonalTokens).reduce((prev: any, season: string) => {
-    prev[season] = {name: season, ethAmount: '0', bscAmount: '0'};
+    prev[season] = {name: season, ethAmount: '0', polygonAmount: '0'};
     return prev;
   }, {}));
   const { connected, connect, address, switchEthereumChain } = useWeb3Context();
@@ -34,10 +34,8 @@ export const App = (): JSX.Element => {
   const [loadModalOpen, setLoadModalOpen] = useState(false);
   const [swapAmount, setSwapAmount] = useState(0);
   const [swapEthAmount, setSwapEthAmount] = useState(100);
-  const [swapBscAmount, setSwapBscAmount] = useState(100);
+  const [swapPolygonAmount, setswapPolygonAmount] = useState(100);
   const [approved, setApproved] = useState(false);
-  const ethBridgeAddress = networks[FromNetwork].addresses.ETH_BRIDGE;
-  const bscBridgeAddress = networks[ToNetwork].addresses.BSC_BRIDGE;
 
   const handleChange = (event: any) => {
     setSeason(event.target.value);
@@ -45,8 +43,8 @@ export const App = (): JSX.Element => {
   const swapEthAmountInput = (event: any) => {
     setSwapEthAmount(event.target.value as number);
   };
-  const swapBscAmountInput = (event: any) => {
-    setSwapBscAmount(event.target.value as number);
+  const swapPolygonAmountInput = (event: any) => {
+    setswapPolygonAmount(event.target.value as number);
   };
   const getCurrentAmount = async (season: string) => {
     if (address !== '') {
@@ -58,15 +56,15 @@ export const App = (): JSX.Element => {
       }
 
       try {
-        const bscAmount = await SeasonalTokens[season].bscContract.methods.balanceOf(address).call();
-        seasonTokenAmounts[season].bscAmount = bscWeb3.utils.fromWei(bscAmount, 'ether');
+        const polygonAmount = await SeasonalTokens[season].polygonContract.methods.balanceOf(address).call();
+        seasonTokenAmounts[season].polygonAmount = bscWeb3.utils.fromWei(polygonAmount, 'ether');
       } catch (error) {
         console.log(error);
       }
     }
     else {
       seasonTokenAmounts[season].ethAmount = '0';
-      seasonTokenAmounts[season].bscAmount = '0';
+      seasonTokenAmounts[season].polygonAmount = '0';
     }
     setSeasonalTokenAmounts(seasonTokenAmounts);
     forceUpdate();
@@ -82,7 +80,7 @@ export const App = (): JSX.Element => {
       setApproved(allowAmount !== '0');
     };
 
-    if (type === SwapTypes.ETH_TO_BSC) {
+    if (type === SwapTypes.ETH_TO_POLYGON) {
       setLoadModalOpen(true);
       let changedNetwork = await switchEthereumChain(FromNetwork, true);
       setLoadModalOpen(false);
@@ -90,7 +88,6 @@ export const App = (): JSX.Element => {
         return;
       setSwapAmount(swapEthAmount);
       const seasonContract = getContract(FromNetwork, season);
-      getAllowance(seasonContract, ethBridgeAddress).then();
       // if (parseFloat(swapEthAmount.toString()) > parseFloat(seasonTokenAmounts[season].ethAmount)) {
       //   dispatch(error('Swap amount is bigger than current amount'));
       //   return;
@@ -101,20 +98,19 @@ export const App = (): JSX.Element => {
       // }
     }
 
-    if (type === SwapTypes.BSC_TO_ETH) {
+    if (type === SwapTypes.POLYGON_TO_ETH) {
       setLoadModalOpen(true);
       let changedNetwork = await switchEthereumChain(ToNetwork, true);
       setLoadModalOpen(false);
       if (!changedNetwork)
         return;
-      setSwapAmount(swapBscAmount);
+      setSwapAmount(swapPolygonAmount);
       const seasonContract = getContract(ToNetwork, season);
-      await getAllowance(seasonContract, bscBridgeAddress);
-      // if (parseFloat(swapBscAmount.toString()) > parseFloat(seasonTokenAmounts[season].bscAmount)) {
+      // if (parseFloat(swapPolygonAmount.toString()) > parseFloat(seasonTokenAmounts[season].polygonAmount)) {
       //   dispatch(error('Swap amount is bigger than current amount'));
       //   return;
       // }
-      // if (parseFloat(swapBscAmount.toString()) < 100) {
+      // if (parseFloat(swapPolygonAmount.toString()) < 100) {
       //   dispatch(error('Minimum swap amount is 100!'));
       //   return;
       // }
@@ -142,17 +138,17 @@ export const App = (): JSX.Element => {
         <Grid item xs={ 12 } sm={ 12 } lg={ 3 } className="">
           <Box className="w-full py-50 flex items-center justify-center"><img src={swapIcon} alt="swap image" className="w-60"/></Box>
             <div className="flex flex-wrap justify-center mt-15">
-                <button className={ activeButtonStyle + ' lg:mb-20' } onClick={() => openSwapModal(SwapTypes.ETH_TO_BSC)}>
+                <button className={ activeButtonStyle + ' lg:mb-20' } onClick={() => openSwapModal(SwapTypes.ETH_TO_POLYGON)}>
                   Swap from <img src={networks[FromNetwork].logo} className="mx-10 w-20" alt="ethereum"/> {networks[FromNetwork].name}
                 </button>
-                <button className={ defaultButtonStyle } onClick={() => openSwapModal(SwapTypes.BSC_TO_ETH)}>
+                <button className={ defaultButtonStyle } onClick={() => openSwapModal(SwapTypes.POLYGON_TO_ETH)}>
                   Swap from <img src={networks[ToNetwork].logo} className="mx-10 w-20" alt="bsc"/> {networks[ToNetwork].name}
                 </button>
             </div>
         </Grid>
         <Grid item xs={ 12 } sm={ 12 } lg={ 4 } className="justify-box">
           <Box className="text-left text-32 leading-1.5em font-medium text-white py-30">Polygon</Box>
-          <BscTokenSection season={season} onChange={handleChange} swapAmount={swapBscAmount} tokenAmounts={seasonTokenAmounts}  onSwapAmountChange = {swapBscAmountInput}/>
+          <PolygonTokenSection season={season} onChange={handleChange} swapAmount={swapPolygonAmount} tokenAmounts={seasonTokenAmounts}  onSwapAmountChange = {swapPolygonAmountInput}/>
         </Grid>
       </Grid>
       <SwapModal type={ swapType } season={season} open={ swapModalOpen } onClose={ closeSwapModal } amount={swapAmount} onSwapAfter={() => getCurrentAmount(season)} approved={approved} setApproved={setApproved}/>
