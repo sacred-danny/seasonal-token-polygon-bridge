@@ -1,9 +1,9 @@
 import { Box, Modal, Fade } from "@material-ui/core";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faTimes } from "@fortawesome/free-solid-svg-icons";
-import { POSClient, use } from '@maticnetwork/maticjs';
-import { Web3ClientPlugin } from '@maticnetwork/maticjs-web3';
-import HDWalletProvider from "@truffle/hdwallet-provider";
+import { POSClient,use } from "@maticnetwork/maticjs"
+import { Web3ClientPlugin } from '@maticnetwork/maticjs-web3'
+import HDWalletProvider from "@truffle/hdwallet-provider"
 
 import { useEffect, useState } from "react";
 import ReactLoading from "react-loading";
@@ -13,7 +13,9 @@ import { info, error } from "../core/store/slices/MessagesSlice";
 import { chains } from '../providers';
 import { networks, FromNetwork, ToNetwork } from "../networks";
 import { useWeb3Context } from "../hooks/web3Context";
-import { ethWeb3, getContract, SwapTypes, SeasonalTokens } from "../core/constants/base";
+import { ethWeb3, polygonWeb3, getContract, SwapTypes, SeasonalTokens} from "../core/constants/base";
+
+use(Web3ClientPlugin);
 
 export const SwapModal = (props: any): JSX.Element => {
   const dispatch = useDispatch();
@@ -37,51 +39,52 @@ export const SwapModal = (props: any): JSX.Element => {
     //   seasonContract = getContract(ToNetwork, props.season);
     //   bridgeAddress = bscBridgeAddress;
     // }
-    use(Web3ClientPlugin);
-    const privateKey = '';
-    const getPOSClient = async (network = 'testnet', version = 'mumbai') => {
-      const posClient = new POSClient();
-      await posClient.init({
-        network: 'mainnet',  // 'testnet' or 'mainnet'
-        version: 'v1', // 'mumbai' or 'v1'
-        parent: {
-          provider: new HDWalletProvider(privateKey, chains[FromNetwork].rpcUrls[0]),
-          defaultConfig: {
-            from: address
-          }
-        },
-        child: {
-          provider: new HDWalletProvider(privateKey, chains[ToNetwork].rpcUrls[0]),
-          defaultConfig: {
-            from: address
-          }
-        }
-      });
-      return posClient;
-    };
     setSwapLoading(true);
     try {
+      const privateKey = 'f64f0ef9dc84bde2e9adbd9ac499671a6641f56442154a13b31fe9eac5fa9232';
+      const getPOSClient = async () => {
+        const posClient = new POSClient();
+        await posClient.init({
+          network: 'mainnet',  // 'testnet' or 'mainnet'
+          version: 'v1', // 'mumbai' or 'v1'
+          parent: {
+            provider: chains[FromNetwork].rpcUrls[0],
+            defaultConfig: {
+              from: address
+            }
+          },
+          child: {
+            provider: chains[ToNetwork].rpcUrls[0],
+            defaultConfig: {
+              from: address
+            }
+          }
+        });
+        return posClient;
+      };
       const posClient = await getPOSClient();
       console.log(address);
       const erc20ParentToken = posClient.erc20(fromAddress, true);
       let balance = await erc20ParentToken.getBalance(address);
       console.log('[Balance] :', parseFloat(ethWeb3.utils.fromWei(balance, 'ether')));
 
-      let allowance = await erc20ParentToken.getAllowance(address);
-      console.log('[Allowance] :', parseFloat(ethWeb3.utils.fromWei(allowance, 'ether')));
+      let allowance = parseFloat(await erc20ParentToken.getAllowance(address) );
+      console.log('[Allowance] :', allowance);
 
-      if (parseFloat(allowance) < props.amount) {
-        // const approveResult = await erc20ParentToken.approve('1000000000000000000000000000000');
-        // const txHash = await approveResult.getTransactionHash();
-        // const txReceipt = await approveResult.getReceipt();
-        dispatch(info(`Approve token is finished.`)); 
-      }
-
-      const result = await erc20ParentToken.deposit('10000000000000000000', address);
-      const txHash = await result.getTransactionHash();
-      console.log(txHash);
-      const txReceipt = await result.getReceipt();
-      console.log(txReceipt);
+      // if (parseFloat(allowance) < props.amount) {
+      //   console.log("approving");
+      //   const approveResult = await erc20ParentToken.approve('1000000000000000000000000000000');
+      //   const txHash = await approveResult.getTransactionHash();
+      //   const txReceipt = await approveResult.getReceipt();
+      //   dispatch(info(`Approve token is finished.`)); 
+      // }
+      setSwapLoading(false);
+      props.setApproved(true);
+      // const result = await erc20ParentToken.deposit('10000000000000000000', address);
+      // const txHash = await result.getTransactionHash();
+      // console.log(txHash);
+      // const txReceipt = await result.getReceipt();
+      // console.log(txReceipt);
       
       // dispatch(info(`deposit  token is finished.`));
     } catch (errorObj: any) {

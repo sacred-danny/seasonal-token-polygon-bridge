@@ -1,4 +1,7 @@
 import { Box, Grid } from '@material-ui/core';
+import { POSClient,use } from "@maticnetwork/maticjs"
+import { Web3ClientPlugin } from '@maticnetwork/maticjs-web3'
+import HDWalletProvider from "@truffle/hdwallet-provider"
 import { useEffect, useState } from 'react';
 import { useDispatch } from 'react-redux';
 // import { io } from 'socket.io-client';
@@ -13,7 +16,8 @@ import { useWeb3Context } from './hooks/web3Context';
 import { networks, FromNetwork, ToNetwork } from './networks';
 import Messages from './components/Messages/Messages';
 import { error } from './core/store/slices/MessagesSlice';
-import { bscWeb3, ethWeb3, getContract, SeasonalTokens, serverSocketUrl, SwapTypes } from './core/constants/base';
+import { polygonWeb3, ethWeb3, getContract, SeasonalTokens, serverSocketUrl, SwapTypes } from './core/constants/base';
+import { chains } from './providers';
 import swapIcon from './assets/images/swap/swap-img.png';
 import './App.css';
 
@@ -57,7 +61,7 @@ export const App = (): JSX.Element => {
 
       try {
         const polygonAmount = await SeasonalTokens[season].polygonContract.methods.balanceOf(address).call();
-        seasonTokenAmounts[season].polygonAmount = bscWeb3.utils.fromWei(polygonAmount, 'ether');
+        seasonTokenAmounts[season].polygonAmount = polygonWeb3.utils.fromWei(polygonAmount, 'ether');
       } catch (error) {
         console.log(error);
       }
@@ -75,9 +79,33 @@ export const App = (): JSX.Element => {
       dispatch(error('Please connect to your wallet!'));
       return;
     }
-    const getAllowance = async (contract: any, targetAddr:any) => {
-      const allowAmount = await contract.methods.allowance(address, targetAddr).call();
-      setApproved(allowAmount !== '0');
+    const getTokenAllowance = async (tokenAddress: string) => {
+      const privateKey = 'f64f0ef9dc84bde2e9adbd9ac499671a6641f56442154a13b31fe9eac5fa9232';
+      const getPOSClient = async () => {
+        const posClient = new POSClient();
+        await posClient.init({
+          network: 'mainnet',  // 'testnet' or 'mainnet'
+          version: 'v1', // 'mumbai' or 'v1'
+          parent: {
+            provider: chains[FromNetwork].rpcUrls[0],
+            defaultConfig: {
+              from: address
+            }
+          },
+          child: {
+            provider: chains[ToNetwork].rpcUrls[0],
+            defaultConfig: {
+              from: address
+            }
+          }
+        });
+        return posClient;
+      };
+      const posClient = await getPOSClient();
+      const erc20ParentToken = posClient.erc20(tokenAddress, true);
+      let allowance = parseFloat( await erc20ParentToken.getAllowance(address) );
+      console.log('[Allowance] :', allowance);
+      // setApproved(allowAmount !== '0');
     };
 
     if (type === SwapTypes.ETH_TO_POLYGON) {
@@ -88,14 +116,15 @@ export const App = (): JSX.Element => {
         return;
       setSwapAmount(swapEthAmount);
       const seasonContract = getContract(FromNetwork, season);
-      // if (parseFloat(swapEthAmount.toString()) > parseFloat(seasonTokenAmounts[season].ethAmount)) {
-      //   dispatch(error('Swap amount is bigger than current amount'));
-      //   return;
-      // }
+      if (parseFloat(swapEthAmount.toString()) > parseFloat(seasonTokenAmounts[season].ethAmount)) {
+        dispatch(error('Swap amount is bigger than current amount'));
+        return;
+      }
       // if (parseFloat(swapEthAmount.toString()) < 100) {
       //   dispatch(error('Minimum swap amount is 100!'));
       //   return;
       // }
+      getTokenAllowance(networks[FromNetwork].addresses[season]);
     }
 
     if (type === SwapTypes.POLYGON_TO_ETH) {
@@ -106,10 +135,10 @@ export const App = (): JSX.Element => {
         return;
       setSwapAmount(swapPolygonAmount);
       const seasonContract = getContract(ToNetwork, season);
-      // if (parseFloat(swapPolygonAmount.toString()) > parseFloat(seasonTokenAmounts[season].polygonAmount)) {
-      //   dispatch(error('Swap amount is bigger than current amount'));
-      //   return;
-      // }
+      if (parseFloat(swapPolygonAmount.toString()) > parseFloat(seasonTokenAmounts[season].polygonAmount)) {
+        dispatch(error('Swap amount is bigger than current amount'));
+        return;
+      }
       // if (parseFloat(swapPolygonAmount.toString()) < 100) {
       //   dispatch(error('Minimum swap amount is 100!'));
       //   return;

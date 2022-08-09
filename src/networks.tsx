@@ -20,7 +20,7 @@ export enum NetworkIds {
 }
 
 export const FromNetwork = NetworkIds.Ethereum;
-export const ToNetwork = NetworkIds.Mumbai;
+export const ToNetwork = NetworkIds.Polygon;
 
 interface INetwork {
   name: string,
@@ -101,9 +101,9 @@ export const networks: INetworks = {
     isEnabled: true,
     addresses: {
       SPRING: '0x70d59baA5ab360b2723dD561415bdBcD4435E1C4',
-      SUMMER: '0x4DF858CB94A329000895C34EAD6Db56f99511481',
-      AUTUMN: '0x4DF858CB94A329000895C34EAD6Db56f99511481',
-      WINTER: '0xf0a4c5b65317cE6Fed4E262E514DEC83837d146A',
+      SUMMER: '0xdd28ec6b06983d01d37dbd9ab581d8d884d95264',
+      AUTUMN: '0xfba4d30e964e40775c95b58acf6b5a621b929c0a',
+      WINTER: '0x51540d15957bdc0fdb87d32616c8d658d59f77c6',
       BSC_BRIDGE: '0xC7C0782A4648781bCa43433A81839543AF206329'
     },
     logo: PolygonIcon

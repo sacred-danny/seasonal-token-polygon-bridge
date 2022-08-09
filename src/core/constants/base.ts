@@ -1,3 +1,6 @@
+import { POSClient, use } from '@maticnetwork/maticjs';
+import { Web3ClientPlugin } from '@maticnetwork/maticjs-web3';
+// import HDWalletProvider from "@truffle/hdwallet-provider";
 import Web3 from 'web3';
 
 import { SeasonalToken } from '../interfaces/base';
@@ -11,10 +14,10 @@ import winterImg from '../../assets/images/tokens/winter.png';
 
 const ethWeb3 = new Web3(chains[FromNetwork].rpcUrls[0]);
 
-const bscWeb3 = new Web3(chains[ToNetwork].rpcUrls[0]);
+const polygonWeb3 = new Web3(chains[ToNetwork].rpcUrls[0]);
 
 const polygonSeasonalContracts = Object.keys(networks[ToNetwork].addresses).reduce((prev:any, season: string)=>{
-    prev[season] = new bscWeb3.eth.Contract(contractABIs[season], networks[ToNetwork].addresses[season]);
+    prev[season] = new polygonWeb3.eth.Contract(contractABIs[season], networks[ToNetwork].addresses[season]);
     return prev;
 }, {});
 
@@ -23,7 +26,7 @@ const ethSeasonalContracts = Object.keys(networks[FromNetwork].addresses).reduce
     return prev;
 }, {});
 
-export {ethWeb3, bscWeb3};
+export {ethWeb3, polygonWeb3};
 
 export const getContract = (networkId:number, season: string) => {
     const connectWeb3 = new Web3(Web3.givenProvider);
@@ -64,3 +67,4 @@ export const SwapTypes: {[key: string]:string} = {
 }
 
 export const serverSocketUrl = '38.242.141.54:3000';
+
