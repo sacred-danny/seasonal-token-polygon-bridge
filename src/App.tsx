@@ -80,7 +80,6 @@ export const App = (): JSX.Element => {
       return;
     }
     const getTokenAllowance = async (tokenAddress: string, swapAmount: number) => {
-      const privateKey = 'f64f0ef9dc84bde2e9adbd9ac499671a6641f56442154a13b31fe9eac5fa9232';
       const getPOSClient = async () => {
         const posClient = new POSClient();
         await posClient.init({

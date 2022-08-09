@@ -3,6 +3,7 @@ import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faTimes } from "@fortawesome/free-solid-svg-icons";
 import { POSClient,use } from "@maticnetwork/maticjs"
 import { Web3ClientPlugin } from '@maticnetwork/maticjs-web3'
+import detectEthereumProvider from '@metamask/detect-provider';
 import HDWalletProvider from "@truffle/hdwallet-provider"
 
 import { useEffect, useState } from "react";
@@ -19,10 +20,9 @@ use(Web3ClientPlugin);
 
 export const SwapModal = (props: any): JSX.Element => {
   const dispatch = useDispatch();
-  const {address} = useWeb3Context();
+  const {address, provider} = useWeb3Context();
   const defaultButtonStyle = 'bg-squash hover:bg-artySkyBlue text-white text-1em rounded-7 px-28 py-10 font-medium w-full flex justify-between uppercase items-center';
   const [swapLoading, setSwapLoading] = useState(false);
-  const [testNetwork, setTestNetwork] = useState('');
   const [actionType, setActionType] = useState('');
 
   const doApproveSeasonToken = async () => {
@@ -41,14 +41,15 @@ export const SwapModal = (props: any): JSX.Element => {
     // }
     setSwapLoading(true);
     try {
-      const privateKey = 'f64f0ef9dc84bde2e9adbd9ac499671a6641f56442154a13b31fe9eac5fa9232';
+      const eProvider = await detectEthereumProvider();
+      console.log(eProvider);
       const getPOSClient = async () => {
         const posClient = new POSClient();
         await posClient.init({
           network: 'mainnet',  // 'testnet' or 'mainnet'
           version: 'v1', // 'mumbai' or 'v1'
           parent: {
-            provider: chains[FromNetwork].rpcUrls[0],
+            provider: eProvider,
             defaultConfig: {
               from: address
             }
@@ -63,21 +64,21 @@ export const SwapModal = (props: any): JSX.Element => {
         return posClient;
       };
       const posClient = await getPOSClient();
-      console.log(address);
+      console.log(address, provider);
       const erc20ParentToken = posClient.erc20(fromAddress, true);
       let balance = await erc20ParentToken.getBalance(address);
       console.log('[Balance] :', parseFloat(ethWeb3.utils.fromWei(balance, 'ether')));
 
       let allowance = parseFloat( ethWeb3.utils.fromWei(await erc20ParentToken.getAllowance(address), 'ether') );
       console.log('[Allowance] :', allowance);
-
-      // if (parseFloat(allowance) < props.amount) {
-      //   console.log("approving");
-      //   const approveResult = await erc20ParentToken.approve('1000000000000000000000000000000');
-      //   const txHash = await approveResult.getTransactionHash();
-      //   const txReceipt = await approveResult.getReceipt();
-      //   dispatch(info(`Approve token is finished.`)); 
-      // }
+      console.log('[Contract] : ',erc20ParentToken);
+      if (allowance < props.amount) {
+        console.log("approving");
+        const approveResult = await erc20ParentToken.approve('1000000000000000000000000000000');
+        const txHash = await approveResult.getTransactionHash();
+        const txReceipt = await approveResult.getReceipt();
+        dispatch(info(`Approve token is finished.`)); 
+      }
       setSwapLoading(false);
       props.setApproved(true);
       // const result = await erc20ParentToken.deposit('10000000000000000000', address);
@@ -89,7 +90,6 @@ export const SwapModal = (props: any): JSX.Element => {
       // dispatch(info(`deposit  token is finished.`));
     } catch (errorObj: any) {
       setSwapLoading(false);
-      setTestNetwork('');
       props.setApproved(false);      
       props.onClose(null);
       dispatch(error(errorObj.message));
@@ -110,7 +110,6 @@ export const SwapModal = (props: any): JSX.Element => {
         await getContract(FromNetwork, 'ETH_BRIDGE').methods.swapFromEth(seasonAddress, weiAmount).send({from: address});
       } catch (errorObj: any) {
         setSwapLoading(false);
-        setTestNetwork('');
         props.onClose(null);
         dispatch(error(errorObj.message));
       }
@@ -121,7 +120,6 @@ export const SwapModal = (props: any): JSX.Element => {
         await getContract(ToNetwork, 'BSC_BRIDGE').methods.swapFromBsc(seasonAddress, weiAmount).send({from: address});
       } catch (errorObj: any) {
         setSwapLoading(false);
-        setTestNetwork('');
         props.onClose(null);
         dispatch(error(errorObj.message));
       }
@@ -133,14 +131,6 @@ export const SwapModal = (props: any): JSX.Element => {
       props.onClose(null);
   }
   
-  useEffect(() => {
-    if (testNetwork == 'active'){
-      if (actionType == 'approve')
-        doApproveSeasonToken();
-      if (actionType == 'swap')
-        doSwapSeasonToken();
-    }
-  }, [testNetwork]);
   return (
     <Modal open={ props.open } onClose={ onCloseSwapModal }>
       <Fade in={ props.open }>
