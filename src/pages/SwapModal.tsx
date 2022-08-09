@@ -68,7 +68,7 @@ export const SwapModal = (props: any): JSX.Element => {
       let balance = await erc20ParentToken.getBalance(address);
       console.log('[Balance] :', parseFloat(ethWeb3.utils.fromWei(balance, 'ether')));
 
-      let allowance = parseFloat(await erc20ParentToken.getAllowance(address) );
+      let allowance = parseFloat( ethWeb3.utils.fromWei(await erc20ParentToken.getAllowance(address), 'ether') );
       console.log('[Allowance] :', allowance);
 
       // if (parseFloat(allowance) < props.amount) {

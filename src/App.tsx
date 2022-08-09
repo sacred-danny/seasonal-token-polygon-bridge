@@ -79,7 +79,7 @@ export const App = (): JSX.Element => {
       dispatch(error('Please connect to your wallet!'));
       return;
     }
-    const getTokenAllowance = async (tokenAddress: string) => {
+    const getTokenAllowance = async (tokenAddress: string, swapAmount: number) => {
       const privateKey = 'f64f0ef9dc84bde2e9adbd9ac499671a6641f56442154a13b31fe9eac5fa9232';
       const getPOSClient = async () => {
         const posClient = new POSClient();
@@ -103,9 +103,9 @@ export const App = (): JSX.Element => {
       };
       const posClient = await getPOSClient();
       const erc20ParentToken = posClient.erc20(tokenAddress, true);
-      let allowance = parseFloat( await erc20ParentToken.getAllowance(address) );
-      console.log('[Allowance] :', allowance);
-      // setApproved(allowAmount !== '0');
+      let allowance = parseFloat( ethWeb3.utils.fromWei(await erc20ParentToken.getAllowance(address), 'ether') );
+      console.log('[Allowance] :', allowance, swapAmount, allowance >= swapAmount);
+      setApproved(allowance >= swapAmount);
     };
 
     if (type === SwapTypes.ETH_TO_POLYGON) {
@@ -124,7 +124,7 @@ export const App = (): JSX.Element => {
       //   dispatch(error('Minimum swap amount is 100!'));
       //   return;
       // }
-      getTokenAllowance(networks[FromNetwork].addresses[season]);
+      getTokenAllowance(networks[FromNetwork].addresses[season], swapEthAmount);
     }
 
     if (type === SwapTypes.POLYGON_TO_ETH) {
