@@ -1,10 +1,7 @@
 import { Box, Grid } from '@material-ui/core';
 import { POSClient,use } from "@maticnetwork/maticjs"
-import { Web3ClientPlugin } from '@maticnetwork/maticjs-web3'
-import HDWalletProvider from "@truffle/hdwallet-provider"
 import { useEffect, useState } from 'react';
 import { useDispatch } from 'react-redux';
-// import { io } from 'socket.io-client';
 import useForceUpdate from 'use-force-update';
 
 import { Layout } from './layout';
@@ -31,7 +28,7 @@ export const App = (): JSX.Element => {
     prev[season] = {name: season, ethAmount: '0', polygonAmount: '0'};
     return prev;
   }, {}));
-  const { connected, connect, address, switchEthereumChain } = useWeb3Context();
+  const { connected, address, switchEthereumChain } = useWeb3Context();
   const [season, setSeason] = useState('SPRING');
   const [swapType, setSwapType] = useState('');
   const [swapModalOpen, setSwapModalOpen] = useState(false);
@@ -103,7 +100,7 @@ export const App = (): JSX.Element => {
       const posClient = await getPOSClient();
       const erc20ParentToken = posClient.erc20(tokenAddress, true);
       let allowance = parseFloat( ethWeb3.utils.fromWei(await erc20ParentToken.getAllowance(address), 'ether') );
-      console.log('[Allowance] :', allowance, swapAmount, allowance >= swapAmount);
+      // console.log('[Allowance] :', allowance, swapAmount, allowance >= swapAmount);
       setApproved(allowance >= swapAmount);
     };
 
@@ -119,10 +116,10 @@ export const App = (): JSX.Element => {
         dispatch(error('Swap amount is bigger than current amount'));
         return;
       }
-      // if (parseFloat(swapEthAmount.toString()) < 100) {
-      //   dispatch(error('Minimum swap amount is 100!'));
-      //   return;
-      // }
+      if (parseFloat(swapEthAmount.toString()) < 100) {
+        dispatch(error('Minimum swap amount is 100!'));
+        return;
+      }
       getTokenAllowance(networks[FromNetwork].addresses[season], swapEthAmount);
     }
 
@@ -138,10 +135,10 @@ export const App = (): JSX.Element => {
         dispatch(error('Swap amount is bigger than current amount'));
         return;
       }
-      // if (parseFloat(swapPolygonAmount.toString()) < 100) {
-      //   dispatch(error('Minimum swap amount is 100!'));
-      //   return;
-      // }
+      if (parseFloat(swapPolygonAmount.toString()) < 100) {
+        dispatch(error('Minimum swap amount is 100!'));
+        return;
+      }
     }
     setSwapModalOpen(true);
     setSwapType(type);

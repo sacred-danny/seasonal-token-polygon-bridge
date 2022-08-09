@@ -14,13 +14,13 @@ import { info, error } from "../core/store/slices/MessagesSlice";
 import { chains } from '../providers';
 import { networks, FromNetwork, ToNetwork } from "../networks";
 import { useWeb3Context } from "../hooks/web3Context";
-import { ethWeb3, polygonWeb3, getContract, SwapTypes, SeasonalTokens} from "../core/constants/base";
+import { ethWeb3, SwapTypes, SeasonalTokens} from "../core/constants/base";
 
 use(Web3ClientPlugin);
 
 export const SwapModal = (props: any): JSX.Element => {
   const dispatch = useDispatch();
-  const {address, provider} = useWeb3Context();
+  const {address} = useWeb3Context();
   const defaultButtonStyle = 'bg-squash hover:bg-artySkyBlue text-white text-1em rounded-7 px-28 py-10 font-medium w-full flex justify-between uppercase items-center';
   const [swapLoading, setSwapLoading] = useState(false);
   const [actionType, setActionType] = useState('');
@@ -30,19 +30,9 @@ export const SwapModal = (props: any): JSX.Element => {
       return;
     const fromAddress:string = networks[FromNetwork].addresses[props.season];
     const toAddress:string = networks[ToNetwork].addresses[props.season];
-    // let seasonContract = getContract(FromNetwork, props.season);
-    // if (props.type === SwapTypes.ETH_TO_POLYGON) {
-    //   seasonContract = getContract(FromNetwork, props.season);
-      // bridgeAddress = ethBridgeAddress;
-    // }
-    // if (props.type === SwapTypes.POLYGON_TO_ETH) {
-    //   seasonContract = getContract(ToNetwork, props.season);
-    //   bridgeAddress = bscBridgeAddress;
-    // }
     setSwapLoading(true);
     try {
       const eProvider = await detectEthereumProvider();
-      console.log(eProvider);
       const getPOSClient = async () => {
         const posClient = new POSClient();
         await posClient.init({
@@ -64,30 +54,22 @@ export const SwapModal = (props: any): JSX.Element => {
         return posClient;
       };
       const posClient = await getPOSClient();
-      console.log(address, provider);
+      console.log(address);
       const erc20ParentToken = posClient.erc20(fromAddress, true);
       let balance = await erc20ParentToken.getBalance(address);
       console.log('[Balance] :', parseFloat(ethWeb3.utils.fromWei(balance, 'ether')));
 
       let allowance = parseFloat( ethWeb3.utils.fromWei(await erc20ParentToken.getAllowance(address), 'ether') );
       console.log('[Allowance] :', allowance);
-      console.log('[Contract] : ',erc20ParentToken);
       if (allowance < props.amount) {
         console.log("approving");
-        const approveResult = await erc20ParentToken.approve('1000000000000000000000000000000');
-        const txHash = await approveResult.getTransactionHash();
-        const txReceipt = await approveResult.getReceipt();
+        // const approveResult = await erc20ParentToken.approve('1000000000000000000000000000000');
+        // const txHash = await approveResult.getTransactionHash();
+        // const txReceipt = await approveResult.getReceipt();
         dispatch(info(`Approve token is finished.`)); 
       }
       setSwapLoading(false);
       props.setApproved(true);
-      // const result = await erc20ParentToken.deposit('10000000000000000000', address);
-      // const txHash = await result.getTransactionHash();
-      // console.log(txHash);
-      // const txReceipt = await result.getReceipt();
-      // console.log(txReceipt);
-      
-      // dispatch(info(`deposit  token is finished.`));
     } catch (errorObj: any) {
       setSwapLoading(false);
       props.setApproved(false);      
@@ -101,13 +83,46 @@ export const SwapModal = (props: any): JSX.Element => {
     if (address === '' || swapLoading)
       return;
 
-    let seasonAddress = networks[FromNetwork].addresses[props.season];
+    let seasonAddress:string;
     const weiAmount = ethWeb3.utils.toWei(props.amount.toString(), 'ether');
     setSwapLoading(true);
+
+    const eProvider = await detectEthereumProvider();
+    const getPOSClient = async () => {
+      const posClient = new POSClient();
+      await posClient.init({
+        network: 'mainnet',  // 'testnet' or 'mainnet'
+        version: 'v1', // 'mumbai' or 'v1'
+        parent: {
+          provider: eProvider,
+          defaultConfig: {
+            from: address
+          }
+        },
+        child: {
+          provider: eProvider,
+          defaultConfig: {
+            from: address
+          }
+        }
+      });
+      return posClient;
+    };
+    const posClient = await getPOSClient();
+    
     if (props.type === SwapTypes.ETH_TO_POLYGON) {
       seasonAddress = networks[FromNetwork].addresses[props.season];
       try {
-        await getContract(FromNetwork, 'ETH_BRIDGE').methods.swapFromEth(seasonAddress, weiAmount).send({from: address});
+        const erc20ParentToken = posClient.erc20(seasonAddress, true);
+        const result = await erc20ParentToken.deposit(weiAmount, address);
+        const txHash = await result.getTransactionHash();
+        console.log(txHash);
+        const txReceipt = await result.getReceipt();
+        console.log(txReceipt);
+        setSwapLoading(false);
+        props.onClose(null);
+        props.onSwapAfter();
+        dispatch(info(`deposit  token is finished.`));
       } catch (errorObj: any) {
         setSwapLoading(false);
         props.onClose(null);
@@ -117,7 +132,18 @@ export const SwapModal = (props: any): JSX.Element => {
     if (props.type === SwapTypes.POLYGON_TO_ETH) {
       seasonAddress = networks[ToNetwork].addresses[props.season];
       try {
-        await getContract(ToNetwork, 'BSC_BRIDGE').methods.swapFromBsc(seasonAddress, weiAmount).send({from: address});
+        const posClient = await getPOSClient();
+        const erc20Token = posClient.erc20(seasonAddress);
+
+        // start withdraw process for 100 amount
+        const result = await erc20Token.withdrawStart(100);
+        const txHash = await result.getTransactionHash();
+        const txReceipt = await result.getReceipt();
+        
+        setSwapLoading(false);
+        props.onClose(null);
+        props.onSwapAfter();
+        dispatch(info(`deposit  token is finished.`));
       } catch (errorObj: any) {
         setSwapLoading(false);
         props.onClose(null);

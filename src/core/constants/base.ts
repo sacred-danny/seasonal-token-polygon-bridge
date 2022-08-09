@@ -1,6 +1,3 @@
-import { POSClient, use } from '@maticnetwork/maticjs';
-import { Web3ClientPlugin } from '@maticnetwork/maticjs-web3';
-// import HDWalletProvider from "@truffle/hdwallet-provider";
 import Web3 from 'web3';
 
 import { SeasonalToken } from '../interfaces/base';
