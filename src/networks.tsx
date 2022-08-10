@@ -97,7 +97,7 @@ export const networks: INetworks = {
     logo: BscIcon
   },
   [NetworkIds.Polygon]: {
-    name: 'POLYGON Mainnet',
+    name: 'POLYGON',
     isEnabled: true,
     addresses: {
       SPRING: '0x70d59baA5ab360b2723dD561415bdBcD4435E1C4',

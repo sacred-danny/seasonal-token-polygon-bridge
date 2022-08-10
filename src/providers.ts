@@ -1,5 +1,7 @@
 import { Provider, StaticJsonRpcProvider } from "@ethersproject/providers";
 import { NetworkIds } from "./networks";
+import { NodeHelper } from "./helpers/NodeHelper";
+// import { MulticallProvider } from "./lib/MulticallProvider";
 
 interface ChainDetailsOpts {
   networkName: string,
@@ -30,24 +32,24 @@ class ChainDetails {
     // Use the fastest node available
     this.provider = ChainDetails.getFastestRpcUrl(this.rpcUrls).then(rpcUrl => {
       const staticProvider = new StaticJsonRpcProvider(rpcUrl);
-    //   if (this.multicallAddress) {
-    //     return new MulticallProvider(this.networkName, staticProvider, this.multicallAddress);
-    //   } else {
+      // if (this.multicallAddress) {
+      //   return new MulticallProvider(this.networkName, staticProvider, this.multicallAddress);
+      // } else {
         return staticProvider;
-    //   }
+      // }
     });
   }
 
   // Return the fastest rpcUrl available
   private static async getFastestRpcUrl(rpcUrls: string[]): Promise<string> {
     return Promise.any(rpcUrls.map(rpcUrl => new Promise<string>((resolve, reject) => {
-    //   NodeHelper.checkNodeStatus(rpcUrl).then(working => {
-    //     if (working) {
-    //       resolve(rpcUrl);
-    //     } else {
-    //       reject();
-    //     }
-    //   });
+      NodeHelper.checkNodeStatus(rpcUrl).then((working:any) => {
+        if (working) {
+          resolve(rpcUrl);
+        } else {
+          reject();
+        }
+      });
     })));
   }
 

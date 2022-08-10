@@ -174,7 +174,7 @@ export const Web3ContextProvider: React.FC<{ children: ReactElement }> = ({child
     const chainId = `0x${networkId.toString(16)}`;
     if (connected || forceSwitch) {
       try {
-        await window.ethereum.request({
+        await window?.ethereum.request({
           method: "wallet_switchEthereumChain",
           params: [{chainId}],
         });

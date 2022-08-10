@@ -1,10 +1,9 @@
 import { Box, Modal, Fade } from "@material-ui/core";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faTimes } from "@fortawesome/free-solid-svg-icons";
-import { POSClient,use } from "@maticnetwork/maticjs"
+import { POSClient, use, setProofApi  } from "@maticnetwork/maticjs"
 import { Web3ClientPlugin } from '@maticnetwork/maticjs-web3'
 import detectEthereumProvider from '@metamask/detect-provider';
-import HDWalletProvider from "@truffle/hdwallet-provider"
 
 import { useEffect, useState } from "react";
 import ReactLoading from "react-loading";
@@ -20,10 +19,10 @@ use(Web3ClientPlugin);
 
 export const SwapModal = (props: any): JSX.Element => {
   const dispatch = useDispatch();
-  const {address} = useWeb3Context();
+  const {address, provider} = useWeb3Context();
   const defaultButtonStyle = 'bg-squash hover:bg-artySkyBlue text-white text-1em rounded-7 px-28 py-10 font-medium w-full flex justify-between uppercase items-center';
   const [swapLoading, setSwapLoading] = useState(false);
-  const [actionType, setActionType] = useState('');
+  // const [actionType, setActionType] = useState('');
 
   const doApproveSeasonToken = async () => {
     if (address === '')
@@ -63,9 +62,9 @@ export const SwapModal = (props: any): JSX.Element => {
       console.log('[Allowance] :', allowance);
       if (allowance < props.amount) {
         console.log("approving");
-        // const approveResult = await erc20ParentToken.approve('1000000000000000000000000000000');
-        // const txHash = await approveResult.getTransactionHash();
-        // const txReceipt = await approveResult.getReceipt();
+        const approveResult = await erc20ParentToken.approve('1000000000000000000000000000000');
+        const txHash = await approveResult.getTransactionHash();
+        const txReceipt = await approveResult.getReceipt();
         dispatch(info(`Approve token is finished.`)); 
       }
       setSwapLoading(false);
@@ -86,7 +85,6 @@ export const SwapModal = (props: any): JSX.Element => {
     let seasonAddress:string;
     const weiAmount = ethWeb3.utils.toWei(props.amount.toString(), 'ether');
     setSwapLoading(true);
-
     const eProvider = await detectEthereumProvider();
     const getPOSClient = async () => {
       const posClient = new POSClient();
@@ -94,7 +92,7 @@ export const SwapModal = (props: any): JSX.Element => {
         network: 'mainnet',  // 'testnet' or 'mainnet'
         version: 'v1', // 'mumbai' or 'v1'
         parent: {
-          provider: eProvider,
+          provider: props.etherProvider,
           defaultConfig: {
             from: address
           }
@@ -111,9 +109,8 @@ export const SwapModal = (props: any): JSX.Element => {
     const posClient = await getPOSClient();
     
     if (props.type === SwapTypes.ETH_TO_POLYGON) {
-      seasonAddress = networks[FromNetwork].addresses[props.season];
       try {
-        const erc20ParentToken = posClient.erc20(seasonAddress, true);
+        const erc20ParentToken = posClient.erc20(networks[FromNetwork].addresses[props.season], true);
         const result = await erc20ParentToken.deposit(weiAmount, address);
         const txHash = await result.getTransactionHash();
         console.log(txHash);
@@ -122,7 +119,7 @@ export const SwapModal = (props: any): JSX.Element => {
         setSwapLoading(false);
         props.onClose(null);
         props.onSwapAfter();
-        dispatch(info(`deposit  token is finished.`));
+        dispatch(info(`Swap finished. Please wait 10 mins to receive polygon tokens.`));
       } catch (errorObj: any) {
         setSwapLoading(false);
         props.onClose(null);
@@ -130,21 +127,32 @@ export const SwapModal = (props: any): JSX.Element => {
       }
     }
     if (props.type === SwapTypes.POLYGON_TO_ETH) {
-      seasonAddress = networks[ToNetwork].addresses[props.season];
       try {
-        const posClient = await getPOSClient();
-        const erc20Token = posClient.erc20(seasonAddress);
-
-        // start withdraw process for 100 amount
-        const result = await erc20Token.withdrawStart(100);
+        // const erc20Token = posClient.erc20(networks[ToNetwork].addresses[props.season]);
+        // const burnResult = await erc20Token.withdrawStart('10000000000000000000');
+        // const burnTxHash = await burnResult.getTransactionHash();
+        // console.log('[burnTxHash] : ', burnTxHash);
+        // const burnTxReceipt = await burnResult.getReceipt();
+        // console.log('[burnTxReceipt] : ', burnTxReceipt);
+        setProofApi("https://apis.matic.network/");
+        
+        const erc20RootToken = posClient.erc20(networks[FromNetwork].addresses[props.season], true);
+        console.log(erc20RootToken);
+        const result = await erc20RootToken.withdrawExit('0x841bd963d60121cb7b95da3bd1beaee7e576d60c6843bd65ea7a864c795bec4a');
         const txHash = await result.getTransactionHash();
         const txReceipt = await result.getReceipt();
-        
+
+        // const erc20RootToken = posClient.erc20(networks[FromNetwork].addresses[props.season], true);
+        // console.log(erc20RootToken);
+        // const isExited = await erc20RootToken.isWithdrawExited('0x841bd963d60121cb7b95da3bd1beaee7e576d60c6843bd65ea7a864c795bec4a');
+        // console.log(isExited);
+
         setSwapLoading(false);
         props.onClose(null);
         props.onSwapAfter();
         dispatch(info(`deposit  token is finished.`));
       } catch (errorObj: any) {
+        console.log(errorObj);
         setSwapLoading(false);
         props.onClose(null);
         dispatch(error(errorObj.message));
@@ -165,7 +173,7 @@ export const SwapModal = (props: any): JSX.Element => {
             {
               props.type === SwapTypes.ETH_TO_POLYGON ? (
                   <label className="text-30 font-bold flex justify-center items-center">Swap from <img src={networks[FromNetwork].logo} alt="ethereum" className="mx-20"/> ETH</label>) :
-                (<label className="text-30 font-bold flex justify-center items-center">Swap from <img src={networks[FromNetwork].logo} alt="ethereum" className="mx-20"/> BSC</label>)
+                (<label className="text-30 font-bold flex justify-center items-center">Swap from <img src={networks[FromNetwork].logo} alt="ethereum" className="mx-20"/> Polygon</label>)
             }
             <button onClick={ onCloseSwapModal } className="absolute top-20 right-20"><FontAwesomeIcon icon={ faTimes }/></button>
           </Box>

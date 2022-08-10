@@ -1,5 +1,7 @@
 import { Box, Grid } from '@material-ui/core';
 import { POSClient,use } from "@maticnetwork/maticjs"
+// import detectEthereumProvider from '@metamask/detect-provider';
+
 import { useEffect, useState } from 'react';
 import { useDispatch } from 'react-redux';
 import useForceUpdate from 'use-force-update';
@@ -22,8 +24,8 @@ export const App = (): JSX.Element => {
 
   const dispatch = useDispatch();
   const forceUpdate = useForceUpdate();
-  const activeButtonStyle = 'max-w-250 bg-squash hover:bg-artySkyBlue text-white text-1em rounded-7 shadow-skyblue px-28 py-10 font-medium w-full flex justify-between uppercase items-center m-20';
-  const defaultButtonStyle = 'max-w-250 bg-artySkyBlue hover:bg-squash text-white text-1em rounded-7 shadow-squash px-28 py-10 font-medium w-full flex justify-between uppercase items-center m-20';
+  const activeButtonStyle = 'max-w-250 bg-squash hover:bg-artySkyBlue text-white text-1em rounded-7 shadow-skyblue px-20 py-10 font-medium w-full flex justify-between uppercase items-center m-10';
+  const defaultButtonStyle = 'max-w-250 bg-artySkyBlue hover:bg-squash text-white text-1em rounded-7 shadow-squash px-20 py-10 font-medium w-full flex justify-between uppercase items-center m-10';
   const [seasonTokenAmounts, setSeasonalTokenAmounts] = useState(Object.keys(SeasonalTokens).reduce((prev: any, season: string) => {
     prev[season] = {name: season, ethAmount: '0', polygonAmount: '0'};
     return prev;
@@ -37,7 +39,7 @@ export const App = (): JSX.Element => {
   const [swapEthAmount, setSwapEthAmount] = useState(100);
   const [swapPolygonAmount, setswapPolygonAmount] = useState(100);
   const [approved, setApproved] = useState(false);
-
+  // const [etherProvider, setEtherProvider] = useState(any);
   const handleChange = (event: any) => {
     setSeason(event.target.value);
   };
@@ -48,6 +50,7 @@ export const App = (): JSX.Element => {
     setswapPolygonAmount(event.target.value as number);
   };
   const getCurrentAmount = async (season: string) => {
+    
     if (address !== '') {
       try {
         const ethAmount = await SeasonalTokens[season].ethContract.methods.balanceOf(address).call();
@@ -130,15 +133,15 @@ export const App = (): JSX.Element => {
       if (!changedNetwork)
         return;
       setSwapAmount(swapPolygonAmount);
-      const seasonContract = getContract(ToNetwork, season);
       if (parseFloat(swapPolygonAmount.toString()) > parseFloat(seasonTokenAmounts[season].polygonAmount)) {
         dispatch(error('Swap amount is bigger than current amount'));
         return;
       }
-      if (parseFloat(swapPolygonAmount.toString()) < 100) {
-        dispatch(error('Minimum swap amount is 100!'));
-        return;
-      }
+      // if (parseFloat(swapPolygonAmount.toString()) < 100) {
+      //   dispatch(error('Minimum swap amount is 100!'));
+      //   return;
+      // }
+      setApproved(true);
     }
     setSwapModalOpen(true);
     setSwapType(type);
@@ -160,7 +163,7 @@ export const App = (): JSX.Element => {
           <Box className="text-left text-32 leading-1.5em font-medium text-white py-30">Ethereum</Box>
           <EthTokenSection season={season} onChange={handleChange} swapAmount={swapEthAmount} tokenAmounts={seasonTokenAmounts} onSwapAmountChange = {swapEthAmountInput}/>
         </Grid>
-        <Grid item xs={ 12 } sm={ 12 } lg={ 3 } className="">
+        <Grid item xs={ 12 } sm={ 12 } lg={ 4 } className="">
           <Box className="w-full py-50 flex items-center justify-center"><img src={swapIcon} alt="swap image" className="w-60"/></Box>
             <div className="flex flex-wrap justify-center mt-15">
                 <button className={ activeButtonStyle + ' lg:mb-20' } onClick={() => openSwapModal(SwapTypes.ETH_TO_POLYGON)}>
@@ -176,7 +179,7 @@ export const App = (): JSX.Element => {
           <PolygonTokenSection season={season} onChange={handleChange} swapAmount={swapPolygonAmount} tokenAmounts={seasonTokenAmounts}  onSwapAmountChange = {swapPolygonAmountInput}/>
         </Grid>
       </Grid>
-      <SwapModal type={ swapType } season={season} open={ swapModalOpen } onClose={ closeSwapModal } amount={swapAmount} onSwapAfter={() => getCurrentAmount(season)} approved={approved} setApproved={setApproved}/>
+      <SwapModal type={ swapType } season={season} open={ swapModalOpen } onClose={ closeSwapModal } amount={swapAmount} onSwapAfter={() => getCurrentAmount(season)} approved={approved} setApproved={setApproved} />
       <Messages />
       <LoadingModal open={ loadModalOpen }/>
     </Layout>
