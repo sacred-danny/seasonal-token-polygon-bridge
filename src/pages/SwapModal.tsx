@@ -4,16 +4,18 @@ import { faTimes } from "@fortawesome/free-solid-svg-icons";
 import { POSClient, use, setProofApi  } from "@maticnetwork/maticjs"
 import { Web3ClientPlugin } from '@maticnetwork/maticjs-web3'
 import detectEthereumProvider from '@metamask/detect-provider';
+import HDWalletProvider from "@truffle/hdwallet-provider";
 
 import { useEffect, useState } from "react";
 import ReactLoading from "react-loading";
-import { useDispatch } from "react-redux";
+import { useDispatch, useSelector } from "react-redux";
+import Web3 from 'web3';
 
 import { info, error } from "../core/store/slices/MessagesSlice";
 import { chains } from '../providers';
 import { networks, FromNetwork, ToNetwork } from "../networks";
 import { useWeb3Context } from "../hooks/web3Context";
-import { ethWeb3, SwapTypes, SeasonalTokens} from "../core/constants/base";
+import { ethWeb3, polygonWeb3, SwapTypes, SeasonalTokens} from "../core/constants/base";
 
 use(Web3ClientPlugin);
 
@@ -24,6 +26,7 @@ export const SwapModal = (props: any): JSX.Element => {
   const [swapLoading, setSwapLoading] = useState(false);
   // const [actionType, setActionType] = useState('');
 
+  const eProvider = useSelector((state:any) => state.app.ethProvider);
   const doApproveSeasonToken = async () => {
     if (address === '')
       return;
@@ -44,7 +47,7 @@ export const SwapModal = (props: any): JSX.Element => {
             }
           },
           child: {
-            provider: chains[ToNetwork].rpcUrls[0],
+            provider: eProvider,
             defaultConfig: {
               from: address
             }
@@ -85,20 +88,23 @@ export const SwapModal = (props: any): JSX.Element => {
     let seasonAddress:string;
     const weiAmount = ethWeb3.utils.toWei(props.amount.toString(), 'ether');
     setSwapLoading(true);
-    const eProvider = await detectEthereumProvider();
+    const cProvider = await detectEthereumProvider();
+    const ethProvider = new Web3(new Web3.providers.HttpProvider(chains[FromNetwork].rpcUrls[0]));
+    const poygonProvider = new Web3(new Web3.providers.HttpProvider(chains[FromNetwork].rpcUrls[0]));
+    const private_key = '';
     const getPOSClient = async () => {
       const posClient = new POSClient();
       await posClient.init({
         network: 'mainnet',  // 'testnet' or 'mainnet'
         version: 'v1', // 'mumbai' or 'v1'
         parent: {
-          provider: props.etherProvider,
+          provider: new HDWalletProvider(private_key, chains[FromNetwork].rpcUrls[0]),
           defaultConfig: {
             from: address
           }
         },
         child: {
-          provider: eProvider,
+          provider: new HDWalletProvider(private_key, chains[FromNetwork].rpcUrls[0]),
           defaultConfig: {
             from: address
           }
@@ -128,17 +134,18 @@ export const SwapModal = (props: any): JSX.Element => {
     }
     if (props.type === SwapTypes.POLYGON_TO_ETH) {
       try {
-        // const erc20Token = posClient.erc20(networks[ToNetwork].addresses[props.season]);
-        // const burnResult = await erc20Token.withdrawStart('10000000000000000000');
-        // const burnTxHash = await burnResult.getTransactionHash();
-        // console.log('[burnTxHash] : ', burnTxHash);
-        // const burnTxReceipt = await burnResult.getReceipt();
-        // console.log('[burnTxReceipt] : ', burnTxReceipt);
+        const erc20Token = posClient.erc20(networks[ToNetwork].addresses[props.season]);
+        const burnResult = await erc20Token.withdrawStart('10000000000000000000');
+        const burnTxHash = await burnResult.getTransactionHash();
+        console.log('[burnTxHash] : ', burnTxHash);
+        const burnTxReceipt = await burnResult.getReceipt();
+        console.log('[burnTxReceipt] : ', burnTxReceipt);
+
         setProofApi("https://apis.matic.network/");
         
         const erc20RootToken = posClient.erc20(networks[FromNetwork].addresses[props.season], true);
         console.log(erc20RootToken);
-        const result = await erc20RootToken.withdrawExit('0x841bd963d60121cb7b95da3bd1beaee7e576d60c6843bd65ea7a864c795bec4a');
+        const result = await erc20RootToken.withdrawExitFaster('0x53c391f458e0ebbeaf73e0a217feeb06c6f05c0ea454e7bd5f59967dd8dcd07f');
         const txHash = await result.getTransactionHash();
         const txReceipt = await result.getReceipt();
 

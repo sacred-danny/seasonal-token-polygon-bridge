@@ -1,21 +1,21 @@
 import { createSlice } from '@reduxjs/toolkit';
 
-const initialState = {
-  value: 0,
-  status: 'idle',
-  walletAddress: '',
-  currentSeason: 0,
-  ethProvider: {}
+interface initialProps{
+  ethProvider: any[];
+}
+const initialState:initialProps = {
+  ethProvider: []
 };
 
 export const bridgeSlice = createSlice({
-  name: 'counter',
+  name: 'app',
   initialState,
   // The `reducers` field lets us define reducers and generate associated actions
   reducers: {
-    setEth(state, action) {
-      state.ethProvider = action.payload;
+    SetEthProvider(state, action) {
+      state.ethProvider.push(action.payload);
     },
   }
 });
+export const { SetEthProvider } = bridgeSlice.actions;
 export default bridgeSlice.reducer;

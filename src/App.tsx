@@ -1,6 +1,6 @@
 import { Box, Grid } from '@material-ui/core';
 import { POSClient,use } from "@maticnetwork/maticjs"
-// import detectEthereumProvider from '@metamask/detect-provider';
+import detectEthereumProvider from '@metamask/detect-provider';
 
 import { useEffect, useState } from 'react';
 import { useDispatch } from 'react-redux';
@@ -15,6 +15,7 @@ import { useWeb3Context } from './hooks/web3Context';
 import { networks, FromNetwork, ToNetwork } from './networks';
 import Messages from './components/Messages/Messages';
 import { error } from './core/store/slices/MessagesSlice';
+import { SetEthProvider } from './core/store/slices/bridgeSlice';
 import { polygonWeb3, ethWeb3, getContract, SeasonalTokens, serverSocketUrl, SwapTypes } from './core/constants/base';
 import { chains } from './providers';
 import swapIcon from './assets/images/swap/swap-img.png';
@@ -24,8 +25,8 @@ export const App = (): JSX.Element => {
 
   const dispatch = useDispatch();
   const forceUpdate = useForceUpdate();
-  const activeButtonStyle = 'max-w-250 bg-squash hover:bg-artySkyBlue text-white text-1em rounded-7 shadow-skyblue px-20 py-10 font-medium w-full flex justify-between uppercase items-center m-10';
-  const defaultButtonStyle = 'max-w-250 bg-artySkyBlue hover:bg-squash text-white text-1em rounded-7 shadow-squash px-20 py-10 font-medium w-full flex justify-between uppercase items-center m-10';
+  const activeButtonStyle = 'max-w-280 min-w-280 bg-squash hover:bg-artySkyBlue text-white text-1em rounded-7 shadow-skyblue px-20 py-10 font-medium w-full flex justify-between uppercase items-center m-10';
+  const defaultButtonStyle = 'max-w-280 min-w-280 bg-artySkyBlue hover:bg-squash text-white text-1em rounded-7 shadow-squash px-20 py-10 font-medium w-full flex justify-between uppercase items-center m-10';
   const [seasonTokenAmounts, setSeasonalTokenAmounts] = useState(Object.keys(SeasonalTokens).reduce((prev: any, season: string) => {
     prev[season] = {name: season, ethAmount: '0', polygonAmount: '0'};
     return prev;
@@ -127,11 +128,11 @@ export const App = (): JSX.Element => {
     }
 
     if (type === SwapTypes.POLYGON_TO_ETH) {
-      setLoadModalOpen(true);
-      let changedNetwork = await switchEthereumChain(ToNetwork, true);
-      setLoadModalOpen(false);
-      if (!changedNetwork)
-        return;
+      // setLoadModalOpen(true);
+      // let changedNetwork = await switchEthereumChain(ToNetwork, true);
+      // setLoadModalOpen(false);
+      // if (!changedNetwork)
+      //   return;
       setSwapAmount(swapPolygonAmount);
       if (parseFloat(swapPolygonAmount.toString()) > parseFloat(seasonTokenAmounts[season].polygonAmount)) {
         dispatch(error('Swap amount is bigger than current amount'));
@@ -155,6 +156,21 @@ export const App = (): JSX.Element => {
       getCurrentAmount(season).then();
     });
   }, [address]);
+  
+  useEffect(() => {
+    console.log("Ethereum connected");
+    const getEthProvider = async () => {
+      // return new Promise((resolve, reject) => {
+      //   detectEthereumProvider()
+      //   .then(res => resolve(res))
+      //   .catch(err => reject(err))
+      // })
+      const current = await detectEthereumProvider();
+      console.log(current);
+      dispatch(SetEthProvider(current));
+    }
+    getEthProvider();
+  }, [connected]);
 
   return (
     <Layout>

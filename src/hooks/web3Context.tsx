@@ -79,7 +79,7 @@ export const Web3ContextProvider: React.FC<{ children: ReactElement }> = ({child
 
   const [connected, setConnected] = useState(false);
 
-  let defaultNetworkId = getSavedNetworkId() || FromNetwork;
+  let defaultNetworkId =getSavedNetworkId() ||  FromNetwork; //getSavedNetworkId() || 
   const [chainId, setChainId] = useState(defaultNetworkId);
   const [address, setAddress] = useState("");
   const [provider, setProvider] = useState<JsonRpcProvider | null>(null);
@@ -174,7 +174,7 @@ export const Web3ContextProvider: React.FC<{ children: ReactElement }> = ({child
     const chainId = `0x${networkId.toString(16)}`;
     if (connected || forceSwitch) {
       try {
-        await window?.ethereum.request({
+        await (window as any).ethereum.request({
           method: "wallet_switchEthereumChain",
           params: [{chainId}],
         });
@@ -188,7 +188,7 @@ export const Web3ContextProvider: React.FC<{ children: ReactElement }> = ({child
           }
           const chainDetails = chains[networkId];
           try {
-            await window.ethereum.request({
+            await (window as any).ethereum.request({
               method: "wallet_addEthereumChain",
               params: [
                 {
@@ -236,17 +236,18 @@ export const Web3ContextProvider: React.FC<{ children: ReactElement }> = ({child
     const chainId = await connectedProvider.getNetwork().then(network => network.chainId);
     const connectedAddress = await connectedProvider.getSigner().getAddress();
     setAddress(connectedAddress);
-    const validNetwork = _checkNetwork(chainId);
-    if (!validNetwork) {
+    // const validNetwork = _checkNetwork(chainId);
+    // if (!validNetwork) {
       const switched = await switchEthereumChain(defaultNetworkId, true);
       if (!switched) {
         web3Modal.clearCachedProvider();
         const errorMessage = "Unable to connect. Please change network using provider.";
         console.error(errorMessage);
         store.dispatch(error(errorMessage));
+        return;
       }
-      return;
-    }
+    //   return;
+    // }
     // Save everything after we've validated the right network.
     // Eventually we'll be fine without doing network validations.
     setProvider(connectedProvider);
