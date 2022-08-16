@@ -19,7 +19,7 @@ class ChainDetails {
   readonly rpcUrls: string[];
   readonly blockExplorerUrls: string[];
   readonly multicallAddress?: string;
-  readonly provider: Promise<Provider>;
+  // readonly provider: Promise<Provider>;
 
   constructor(chainDetailsOpts: ChainDetailsOpts) {
     this.networkName = chainDetailsOpts.networkName;
@@ -30,14 +30,14 @@ class ChainDetails {
     this.multicallAddress = chainDetailsOpts.multicallAddress;
 
     // Use the fastest node available
-    this.provider = ChainDetails.getFastestRpcUrl(this.rpcUrls).then(rpcUrl => {
-      const staticProvider = new StaticJsonRpcProvider(rpcUrl);
-      // if (this.multicallAddress) {
-      //   return new MulticallProvider(this.networkName, staticProvider, this.multicallAddress);
-      // } else {
-        return staticProvider;
-      // }
-    });
+    // this.provider = ChainDetails.getFastestRpcUrl(this.rpcUrls).then(rpcUrl => {
+    //   const staticProvider = new StaticJsonRpcProvider(rpcUrl);
+    //   // if (this.multicallAddress) {
+    //   //   return new MulticallProvider(this.networkName, staticProvider, this.multicallAddress);
+    //   // } else {
+    //     return staticProvider;
+    //   // }
+    // });
   }
 
   // Return the fastest rpcUrl available

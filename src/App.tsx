@@ -38,7 +38,7 @@ export const App = (): JSX.Element => {
   const [loadModalOpen, setLoadModalOpen] = useState(false);
   const [swapAmount, setSwapAmount] = useState(0);
   const [swapEthAmount, setSwapEthAmount] = useState(100);
-  const [swapPolygonAmount, setswapPolygonAmount] = useState(100);
+  const [swapPolygonAmount, setswapPolygonAmount] = useState(10);
   const [approved, setApproved] = useState(false);
   // const [etherProvider, setEtherProvider] = useState(any);
   const handleChange = (event: any) => {
@@ -128,11 +128,11 @@ export const App = (): JSX.Element => {
     }
 
     if (type === SwapTypes.POLYGON_TO_ETH) {
-      // setLoadModalOpen(true);
-      // let changedNetwork = await switchEthereumChain(ToNetwork, true);
-      // setLoadModalOpen(false);
-      // if (!changedNetwork)
-      //   return;
+      setLoadModalOpen(true);
+      let changedNetwork = await switchEthereumChain(ToNetwork, true);
+      setLoadModalOpen(false);
+      if (!changedNetwork)
+        return;
       setSwapAmount(swapPolygonAmount);
       if (parseFloat(swapPolygonAmount.toString()) > parseFloat(seasonTokenAmounts[season].polygonAmount)) {
         dispatch(error('Swap amount is bigger than current amount'));
@@ -158,7 +158,6 @@ export const App = (): JSX.Element => {
   }, [address]);
   
   useEffect(() => {
-    console.log("Ethereum connected");
     const getEthProvider = async () => {
       // return new Promise((resolve, reject) => {
       //   detectEthereumProvider()
@@ -166,7 +165,6 @@ export const App = (): JSX.Element => {
       //   .catch(err => reject(err))
       // })
       const current = await detectEthereumProvider();
-      console.log(current);
       dispatch(SetEthProvider(current));
     }
     getEthProvider();

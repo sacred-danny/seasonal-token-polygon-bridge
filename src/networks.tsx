@@ -1,6 +1,8 @@
 import seasonalTokenABI from './abi/seasonalTokenABI.json';
 import ethBridgeABI from './abi/ethBridgeABI.json';
 import bscBridgeABI from './abi/bscBridgeABI.json';
+import childTokenABI from './abi/polygonTokenABI.json';
+import rootChainManagerABI from './abi/RootChainManagerABI.json';
 
 import EthereumIcon from "./assets/images/networks/ethereum.svg";
 import BscIcon from "./assets/images/networks/bsc.svg";
@@ -101,8 +103,8 @@ export const networks: INetworks = {
     isEnabled: true,
     addresses: {
       SPRING: '0x70d59baA5ab360b2723dD561415bdBcD4435E1C4',
-      SUMMER: '0xdd28ec6b06983d01d37dbd9ab581d8d884d95264',
-      AUTUMN: '0xfba4d30e964e40775c95b58acf6b5a621b929c0a',
+      SUMMER: '0xdd28ec6b06983d01D37DbD9Ab581d8d884d95264',
+      AUTUMN: '0xfbA4d30e964E40775C95B58AcF6b5A621b929c0a',
       WINTER: '0x51540d15957bdc0fdb87d32616c8d658d59f77c6',
       BSC_BRIDGE: '0xC7C0782A4648781bCa43433A81839543AF206329'
     },
@@ -131,7 +133,9 @@ export const contractABIs: SeasonalABIS = {
   AUTUMN: seasonalTokenABI,
   WINTER: seasonalTokenABI,
   ETH_BRIDGE: ethBridgeABI,
-  BSC_BRIDGE: bscBridgeABI
+  BSC_BRIDGE: bscBridgeABI,
+  CHILD_CHAIN: childTokenABI,
+  ROOT_CHAIN_MANAGER: rootChainManagerABI
 }
 
 export const enabledNetworkIds: NetworkId[] = Object.keys(networks).map(networkId => parseInt(networkId)).filter(networkId => networks[networkId].isEnabled);
