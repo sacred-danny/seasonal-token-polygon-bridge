@@ -13,36 +13,6 @@ const useStyles = makeStyles({
     marginTop: '10px',
   },
 });
-
-function Linear({message}) {
-  const [progress, setProgress] = useState(100);
-  const classes = useStyles();
-  const dispatch = useDispatch();
-
-  useEffect(() => {
-    const timer = setInterval(() => {
-      setProgress(oldProgress => {
-        if (oldProgress === 0) {
-          clearInterval(timer);
-          dispatch(close(message));
-          return 0;
-        }
-        return oldProgress - 5;
-      });
-    }, 333);
-
-    return () => {
-      clearInterval(timer);
-    };
-  }, [dispatch, message]);
-
-  return (
-    <div className={classes.root}>
-      <LinearProgress variant="determinate" value={progress}/>
-    </div>
-  );
-}
-
 // A component that displays error messages
 function Messages() {
   const messages = useSelector(state => state?.messages);
@@ -68,7 +38,6 @@ function Messages() {
               >
                 <AlertTitle>{message.title}</AlertTitle>
                 {message.text}
-                <Linear message={message}/>
               </Alert>
             </Snackbar>
           );
@@ -78,6 +47,6 @@ function Messages() {
   );
 }
 window.setInterval(() => {
-  store.dispatch(handle_obsolete());
+  // store.dispatch(handle_obsolete());
 }, 60000);
 export default Messages;

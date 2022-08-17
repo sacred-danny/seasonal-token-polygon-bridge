@@ -62,8 +62,8 @@ export const WithdrawModal = (props: any): JSX.Element => {
       console.log(erc20RootToken);
 
       const result = await erc20RootToken.withdrawExitFaster(txHash);
-      // const transactionHash = await result.getTransactionHash();
-      // const txReceipt = await result.getReceipt();
+      const transactionHash = await result.getTransactionHash();
+      const txReceipt = await result.getReceipt();
 
       const txIndex = txHashes.findIndex((tx:string) => tx === txHash);
       txHashes.splice(txIndex, 1);
@@ -71,7 +71,7 @@ export const WithdrawModal = (props: any): JSX.Element => {
       localStorage.setItem('transactions', JSON.stringify(txHashes));
       setSwapLoading(false);
       props.onClose(null);
-      dispatch(info(`Withdraw token is finished. Please wait 10 mins or more.`));
+      dispatch(info(`Withdraw token is finished. Please wait 10 mins`));
     } catch (errorObj: any) {
       console.log(errorObj);
       setSwapLoading(false);
@@ -84,14 +84,14 @@ export const WithdrawModal = (props: any): JSX.Element => {
     if (!swapLoading)
       props.onClose(null);
   }
-  // useEffect(()=> {
-    // localStorage.setItem('transactions', JSON.stringify(['a','b']));
+  useEffect(()=> {
+    localStorage.setItem('transactions', JSON.stringify(['a','b']));
     const transactions = localStorage.getItem('transactions');
     if (transactions) {
       setTxHashes(JSON.parse(transactions));
       setTxHash(JSON.parse(transactions)[0]);
     }
-  // }, []);
+  }, []);
 
   return (
     <Modal open={ props.open } onClose={ onCloseSwapModal }>

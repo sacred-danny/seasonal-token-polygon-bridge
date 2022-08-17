@@ -1,6 +1,6 @@
 import { createSlice, PayloadAction } from "@reduxjs/toolkit";
 
-const MESSAGES_MAX_DISPLAY_DURATION = 60000;
+const MESSAGES_MAX_DISPLAY_DURATION = 160000;
 let nb_messages = 0;
 
 interface Message {

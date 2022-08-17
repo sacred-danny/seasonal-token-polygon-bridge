@@ -89,8 +89,8 @@ export const SwapModal = (props: any): any => {
       if (allowance < props.amount) {
         console.log("approving");
         const approveResult = await erc20ParentToken.approve('1000000000000000000000000000000');
-        // const txHash = await approveResult.getTransactionHash();
-        // const txReceipt = await approveResult.getReceipt();
+        const txHash = await approveResult.getTransactionHash();
+        const txReceipt = await approveResult.getReceipt();
         dispatch(info(`Approve token is finished.`)); 
       }
       setSwapLoading(false);
