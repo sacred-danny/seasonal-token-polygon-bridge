@@ -136,6 +136,14 @@ export const SwapModal = (props: any): any => {
   const doBurnSeasonToken = async () => {
     if (address === '' || swapLoading)
       return;
+    if (props.amount > parseFloat(props.seasonTokenAmounts[props.season].polygonAmount)) {
+      dispatch(error('Swap amount is bigger than current amount'));
+      return;
+    }
+    if (props.amount < 100) {
+      dispatch(error('Minimum swap amount is 100!'));
+      return;
+    }
 
     const weiAmount = ethWeb3.utils.toWei(props.amount.toString(), 'ether');
     try {

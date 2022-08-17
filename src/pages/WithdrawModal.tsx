@@ -85,7 +85,6 @@ export const WithdrawModal = (props: any): JSX.Element => {
       props.onClose(null);
   }
   useEffect(()=> {
-    localStorage.setItem('transactions', JSON.stringify(['a','b']));
     const transactions = localStorage.getItem('transactions');
     if (transactions) {
       setTxHashes(JSON.parse(transactions));
@@ -109,14 +108,14 @@ export const WithdrawModal = (props: any): JSX.Element => {
                                                                               width={ 50 } height={ 50 }/></Box>)
                 : (
                   <Box className="text-center">                   
-                    {/* <input className="border-2 rounded-5 w-full p-5 m-10" type="text" value={txHash} onChange = {(e:any) => setTxHash(e.target.value)}/> */}
-                    <select className="border-2 rounded-5 w-full p-5 m-10" value={txHash} onChange = {(e:any) => setTxHash(e.target.value)}>
+                    <input className="border-2 rounded-5 w-full p-5 m-10" type="text" value={txHash} onChange = {(e:any) => setTxHash(e.target.value)}/>
+                    {/* <select className="border-2 rounded-5 w-full p-5 m-10" value={txHash} onChange = {(e:any) => setTxHash(e.target.value)}>
                         {
                             txHashes.map((tx:any, index) => {
                                 return <option key={index}>{tx}</option>
                             })
                         }
-                    </select>
+                    </select> */}
                     <button className={ defaultButtonStyle + ' justify-center w-150 mx-auto text-center' } onClick={ doWithdrawSeasonToken }>Confirm</button>
                   </Box>
                 )

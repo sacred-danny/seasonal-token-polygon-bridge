@@ -8,10 +8,10 @@ import {close, handle_obsolete} from '../../core/store/slices/MessagesSlice';
 import store from '../../core/store/store';
 
 const useStyles = makeStyles({
-  root: {
-    width: '100%',
-    marginTop: '10px',
-  },
+  // root: {
+  //   width: '100%',
+  //   marginTop: '10px',
+  // },
 });
 // A component that displays error messages
 function Messages() {
@@ -28,13 +28,13 @@ function Messages() {
       <div>
         {messages.items.map((message, index) => {
           return (
-            <Snackbar open={message.open} key={index} anchorOrigin={{vertical: 'top', horizontal: 'center'}}>
+            <Snackbar open={message.open} key={index} anchorOrigin={{vertical: 'top', horizontal: 'center'}} className=" mx-auto">
               <Alert
                 variant="filled"
                 icon={false}
                 severity={message.severity}
                 onClose={handleClose(message)}
-                style={{wordBreak: 'break-word'}}
+                style={{wordBreak: ' break-word'}}
               >
                 <AlertTitle>{message.title}</AlertTitle>
                 {message.text}

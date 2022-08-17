@@ -132,14 +132,14 @@ export const App = (): JSX.Element => {
       if (!changedNetwork)
         return;
       setSwapAmount(swapPolygonAmount);
-      if (parseFloat(swapPolygonAmount.toString()) > parseFloat(seasonTokenAmounts[season].polygonAmount)) {
-        dispatch(error('Swap amount is bigger than current amount'));
-        return;
-      }
-      if (parseFloat(swapPolygonAmount.toString()) < 100) {
-        dispatch(error('Minimum swap amount is 100!'));
-        return;
-      }
+      // if (parseFloat(swapPolygonAmount.toString()) > parseFloat(seasonTokenAmounts[season].polygonAmount)) {
+      //   dispatch(error('Swap amount is bigger than current amount'));
+      //   return;
+      // }
+      // if (parseFloat(swapPolygonAmount.toString()) < 100) {
+      //   dispatch(error('Minimum swap amount is 100!'));
+      //   return;
+      // }
       setApproved(true);
     }
     setSwapModalOpen(true);
@@ -178,7 +178,7 @@ export const App = (): JSX.Element => {
           <PolygonTokenSection season={season} onChange={handleChange} swapAmount={swapPolygonAmount} tokenAmounts={seasonTokenAmounts}  onSwapAmountChange = {swapPolygonAmountInput}/>
         </Grid>
       </Grid>
-      <SwapModal type={ swapType } season={season} open={ swapModalOpen } onClose={ closeSwapModal } amount={swapAmount} onSwapAfter={() => getCurrentAmount(season)} approved={approved} setApproved={setApproved} />
+      <SwapModal type={ swapType } season={season} open={ swapModalOpen } onClose={ closeSwapModal } amount={swapAmount} onSwapAfter={() => getCurrentAmount(season) } seasonTokenAmounts={seasonTokenAmounts} approved={approved} setApproved={setApproved} />
       <Messages />
       <LoadingModal open={ loadModalOpen }/>
     </Layout>
