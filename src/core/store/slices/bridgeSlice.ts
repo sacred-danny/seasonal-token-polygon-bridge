@@ -12,10 +12,6 @@ export const bridgeSlice = createSlice({
   initialState,
   // The `reducers` field lets us define reducers and generate associated actions
   reducers: {
-    SetEthProvider(state, action) {
-      state.ethProvider.push(action.payload);
-    },
   }
 });
-export const { SetEthProvider } = bridgeSlice.actions;
 export default bridgeSlice.reducer;

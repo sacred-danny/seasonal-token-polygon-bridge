@@ -1,12 +1,12 @@
 import { Box, Modal, Fade } from "@material-ui/core";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faTimes } from "@fortawesome/free-solid-svg-icons";
-import { POSClient, use, setProofApi  } from "@maticnetwork/maticjs"
+import MaticPOSClient, { POSClient, use }  from "@maticnetwork/maticjs";
 import { Web3ClientPlugin } from '@maticnetwork/maticjs-web3'
 import detectEthereumProvider from '@metamask/detect-provider';
-// import HDWalletProvider from "@truffle/hdwallet-provider";
+import WalletConnectProvider from "@maticnetwork/walletconnect-provider";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import ReactLoading from "react-loading";
 import { useDispatch, useSelector } from "react-redux";
 import Web3 from 'web3';
@@ -17,60 +17,48 @@ import { networks, FromNetwork, ToNetwork } from "../networks";
 import { useWeb3Context } from "../hooks/web3Context";
 import { ethWeb3, polygonWeb3, SwapTypes, SeasonalTokens} from "../core/constants/base";
 
-use(Web3ClientPlugin);
-
 export const SwapModal = (props: any): JSX.Element => {
   const dispatch = useDispatch();
   const {address, provider} = useWeb3Context();
   const defaultButtonStyle = 'bg-squash hover:bg-artySkyBlue text-white text-1em rounded-7 px-28 py-10 font-medium w-full flex justify-between uppercase items-center';
   const [swapLoading, setSwapLoading] = useState(false);
-  // const [actionType, setActionType] = useState('');
-  console.log('provider: ', provider);
-  console.log('window web3:', window.web3);
-  const eProvider = useSelector((state:any) => state.app.ethProvider);
+  const [maticProvider, setMaticProvider] = useState();
+  const [ethereumprovider, setEthereumProvider] = useState();
+  // posClientGeneral facilitates the operations like approve, deposit, exit
+  const posClientParent = () => {
+    const maticPoSClient = new MaticPOSClient({
+      network: 'mainnet',
+      version: 'v1',
+      maticProvider: maticProvider,
+      parentProvider: window.web3,
+      parentDefaultOptions: { from: address },
+      maticDefaultOptions: { from: address },
+    });
+    return maticPoSClient;
+  };
+  // posclientBurn facilitates the burning of tokens on the matic chain
+  const posClientChild = () => {
+    const maticPoSClient = new MaticPOSClient({
+      network: 'mainnet',
+      version: 'v1',
+      maticProvider: window.web3,
+      parentProvider: ethereumprovider,
+      parentDefaultOptions: { from: address },
+      maticDefaultOptions: { from: address },
+    });
+    return maticPoSClient;
+  };
+
   const doApproveSeasonToken = async () => {
     if (address === '')
       return;
-    const fromAddress:string = networks[FromNetwork].addresses[props.season];
-    const toAddress:string = networks[ToNetwork].addresses[props.season];
     setSwapLoading(true);
     try {
-      const eProvider = await detectEthereumProvider();
-      const getPOSClient = async () => {
-        const posClient = new POSClient();
-        await posClient.init({
-          network: 'mainnet',  // 'testnet' or 'mainnet'
-          version: 'v1', // 'mumbai' or 'v1'
-          parent: {
-            provider: eProvider,
-            defaultConfig: {
-              from: address
-            }
-          },
-          child: {
-            provider: eProvider,
-            defaultConfig: {
-              from: address
-            }
-          }
-        });
-        return posClient;
-      };
-      const posClient = await getPOSClient();
-      console.log(address);
-      const erc20ParentToken = posClient.erc20(fromAddress, true);
-      let balance = await erc20ParentToken.getBalance(address);
-      console.log('[Balance] :', parseFloat(ethWeb3.utils.fromWei(balance, 'ether')));
-
-      let allowance = parseFloat( ethWeb3.utils.fromWei(await erc20ParentToken.getAllowance(address), 'ether') );
-      console.log('[Allowance] :', allowance);
-      if (allowance < props.amount) {
-        console.log("approving");
-        const approveResult = await erc20ParentToken.approve('1000000000000000000000000000000');
-        const txHash = await approveResult.getTransactionHash();
-        const txReceipt = await approveResult.getReceipt();
-        dispatch(info(`Approve token is finished.`)); 
-      }
+      const maticPoSClient = posClientParent();
+      const approveAmount = 1000000000000000000000000000000; // 18 decimals
+      await maticPoSClient.approveERC20ForDeposit(networks[FromNetwork].addresses[props.season], approveAmount, {
+        from: address,
+      });
       setSwapLoading(false);
       props.setApproved(true);
     } catch (errorObj: any) {
@@ -85,43 +73,17 @@ export const SwapModal = (props: any): JSX.Element => {
   const doSwapSeasonToken = async () => {
     if (address === '' || swapLoading)
       return;
-
-    let seasonAddress:string;
-    const weiAmount = ethWeb3.utils.toWei(props.amount.toString(), 'ether');
-    setSwapLoading(true);
-    const cProvider = await detectEthereumProvider();
-    const ethProvider = new Web3(chains[FromNetwork].rpcUrls[0]);
-    const polygonProvider = new Web3(new Web3.providers.HttpProvider(chains[FromNetwork].rpcUrls[0]));
-    const getPOSClient = async () => {
-      const posClient = new POSClient();
-      await posClient.init({
-        network: 'mainnet',  // 'testnet' or 'mainnet'
-        version: 'v1', // 'mumbai' or 'v1'
-        parent: {
-          provider,
-          defaultConfig: {
-            from: address
-          }
-        },
-        child: {
-          provider: cProvider,
-          defaultConfig: {
-            from: address
-          }
-        }
-      });
-      return posClient;
-    };
-    const posClient = await getPOSClient();
     
     if (props.type === SwapTypes.ETH_TO_POLYGON) {
       try {
-        const erc20ParentToken = posClient.erc20(networks[FromNetwork].addresses[props.season], true);
-        const result = await erc20ParentToken.deposit(weiAmount, address);
-        const txHash = await result.getTransactionHash();
-        console.log(txHash);
-        const txReceipt = await result.getReceipt();
-        console.log(txReceipt);
+        setSwapLoading(true);
+        const maticPoSClient = posClientParent();
+        const x = props.swapAmount * 1000000000000000000; // 18 decimals
+        const x1 = x.toString();
+        await maticPoSClient.depositERC20ForUser(networks[FromNetwork].addresses[props.season], address, x1, {
+          from: address,
+        });
+        
         setSwapLoading(false);
         props.onClose(null);
         props.onSwapAfter();
@@ -133,50 +95,7 @@ export const SwapModal = (props: any): JSX.Element => {
       }
     }
     if (props.type === SwapTypes.POLYGON_TO_ETH) {
-      try {
-        // const childTokenContract = new polygonWeb3.eth.Contract(contractABIs.CHILD_CHAIN, networks[FromNetwork].addresses[props.season]);
-
-        // const rootChainManagerContract = new ethWeb3.eth.Contract(contractABIs.ROOT_CHAIN_MANAGER, '0xA0c68C638235ee32657e8f720a23ceC1bFc77C77');
-
-        // // call burn functioni
-        // console.log(childTokenContract);
-        // const burnTx = await childTokenContract.methods
-        // .withdraw('10000000000000000000')
-        // .send({ from: address });
-        // const burnTxHash = burnTx.transactionHash;
-        // console.log(burnTxHash);
-
-        // const exitCalldata = await maticPOSClient.exitERC20(burnTx, { from, encodeAbi: true })
-        // await ethWeb3.eth.sendTransaction({
-        //   from: address,
-        //   to: '0xA0c68C638235ee32657e8f720a23ceC1bFc77C77',
-        //   data: exitCalldata.data
-        // })
-        ///////////////////////////////////////////////////////////////////////
-
-        // const erc20Token = posClient.erc20(networks[ToNetwork].addresses[props.season]);
-        // const burnResult = await erc20Token.withdrawStart('10000000000000000000');
-        // const burnTxHash = await burnResult.getTransactionHash();
-        // console.log('[burnTxHash] : ', burnTxHash);
-        // const burnTxReceipt = await burnResult.getReceipt();
-        // console.log('[burnTxReceipt] : ', burnTxReceipt);
-
-        setProofApi("https://apis.matic.network/");
-        const burnTxHash = '0xbebd7c8f6ce9df10b4796baa348652ca77d4f79684984dd3b2ba41697d4f13d9';
-        const erc20RootToken = posClient.erc20(networks[FromNetwork].addresses[props.season], true);
-        console.log('[checked point] : ', await posClient.isCheckPointed(burnTxHash));
-        console.log('[Exist withdraw] : ', await erc20RootToken.isWithdrawExited(burnTxHash));
-        console.log(erc20RootToken);
-
-        const result = await erc20RootToken.withdrawExitFaster(burnTxHash);
-        const txHash = await result.getTransactionHash();
-        const txReceipt = await result.getReceipt();
-
-        // const erc20RootToken = posClient.erc20(networks[FromNetwork].addresses[props.season], true);
-        // console.log(erc20RootToken);
-        // const isExited = await erc20RootToken.isWithdrawExited('0x841bd963d60121cb7b95da3bd1beaee7e576d60c6843bd65ea7a864c795bec4a');
-        // console.log(isExited);
-
+      try{
         setSwapLoading(false);
         props.onClose(null);
         props.onSwapAfter();
@@ -195,6 +114,28 @@ export const SwapModal = (props: any): JSX.Element => {
       props.onClose(null);
   }
   
+  useEffect(() => {
+    if (address == '') return;
+    const ethereumProvider = new WalletConnectProvider({
+      host: chains[FromNetwork].rpcUrls[0],
+      callbacks: {
+        onConnect: console.log("mainchain connected"),
+        onDisconnect: console.log("mainchain disconnected"),
+      },
+    });
+
+    const maticProvider = new WalletConnectProvider({
+      host: chains[ToNetwork].rpcUrls[0],
+      callbacks: {
+        onConnect: console.log("matic connected"),
+        onDisconnect: console.log("matic disconnected!"),
+      },
+    });
+
+    setMaticProvider(maticProvider);
+    setEthereumProvider(ethereumProvider);
+  }, [provider]);
+
   return (
     <Modal open={ props.open } onClose={ onCloseSwapModal }>
       <Fade in={ props.open }>

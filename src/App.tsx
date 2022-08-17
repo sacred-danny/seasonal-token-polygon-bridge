@@ -1,6 +1,5 @@
 import { Box, Grid } from '@material-ui/core';
-import { POSClient,use } from "@maticnetwork/maticjs"
-import detectEthereumProvider from '@metamask/detect-provider';
+import { POSClient,use } from "@maticnetwork/maticjs";
 
 import { useEffect, useState } from 'react';
 import { useDispatch } from 'react-redux';
@@ -15,7 +14,6 @@ import { useWeb3Context } from './hooks/web3Context';
 import { networks, FromNetwork, ToNetwork } from './networks';
 import Messages from './components/Messages/Messages';
 import { error } from './core/store/slices/MessagesSlice';
-import { SetEthProvider } from './core/store/slices/bridgeSlice';
 import { polygonWeb3, ethWeb3, getContract, SeasonalTokens, serverSocketUrl, SwapTypes } from './core/constants/base';
 import { chains } from './providers';
 import swapIcon from './assets/images/swap/swap-img.png';
@@ -156,19 +154,6 @@ export const App = (): JSX.Element => {
       getCurrentAmount(season).then();
     });
   }, [address]);
-  
-  useEffect(() => {
-    const getEthProvider = async () => {
-      // return new Promise((resolve, reject) => {
-      //   detectEthereumProvider()
-      //   .then(res => resolve(res))
-      //   .catch(err => reject(err))
-      // })
-      const current = await detectEthereumProvider();
-      dispatch(SetEthProvider(current));
-    }
-    getEthProvider();
-  }, [connected]);
 
   return (
     <Layout>
