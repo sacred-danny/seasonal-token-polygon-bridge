@@ -110,7 +110,7 @@ export const chains: AllChainDetails = {
   [NetworkIds.Polygon]: new ChainDetails({
     networkName: 'Polygon',
     rpcUrls: [
-      'https://polygon-mainnet.g.alchemy.com/v2/1V2Is3n6NgKS8nCqL2sbJda7QpzRVfnm',
+      'https://matic-mainnet.chainstacklabs.com',
     ],
     symbol: 'MATIC',
     decimals: 18,
