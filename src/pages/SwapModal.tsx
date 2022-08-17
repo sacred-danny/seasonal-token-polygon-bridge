@@ -6,7 +6,7 @@ import { Web3ClientPlugin } from '@maticnetwork/maticjs-web3'
 import detectEthereumProvider from '@metamask/detect-provider';
 // import HDWalletProvider from "@truffle/hdwallet-provider";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import ReactLoading from "react-loading";
 import { useDispatch, useSelector } from "react-redux";
 import Web3 from 'web3';
@@ -16,15 +16,20 @@ import { chains } from '../providers';
 import { networks, FromNetwork, ToNetwork } from "../networks";
 import { useWeb3Context } from "../hooks/web3Context";
 import { ethWeb3, polygonWeb3, SwapTypes, SeasonalTokens} from "../core/constants/base";
+import { BurnModal } from "./BurnTxModal";
+import { WithdrawModal } from "./WithdrawModal";
+
 
 use(Web3ClientPlugin);
 
-export const SwapModal = (props: any): JSX.Element => {
+export const SwapModal = (props: any): any => {
   const dispatch = useDispatch();
   const {address, provider, switchEthereumChain} = useWeb3Context();
-  const defaultButtonStyle = 'bg-squash hover:bg-artySkyBlue text-white text-1em rounded-7 px-28 py-10 font-medium w-full flex justify-between uppercase items-center';
+  const defaultButtonStyle = 'bg-squash hover:bg-artySkyBlue text-white text-1em rounded-7 px-28 py-10 font-medium w-full flex justify-between uppercase items-center mx-10';
   const [swapLoading, setSwapLoading] = useState(false);
-
+  const [burnBtn, setBurnBtn] = useState(false);
+  const [withdrawBtn, setWithdrawBtn] = useState(false);
+  const [openBurnModal, setOpenBurnModal] = useState(false);
   const posClientParent =async () => {
     const currentProvider = await detectEthereumProvider();
     const posClient = new POSClient();
@@ -103,11 +108,10 @@ export const SwapModal = (props: any): JSX.Element => {
     setSwapLoading(false);
   };
 
-  const doSwapSeasonToken = async () => {
+  const doDepositeSeasonToken = async () => {
     if (address === '' || swapLoading)
       return;
 
-    let seasonAddress:string;
     const weiAmount = ethWeb3.utils.toWei(props.amount.toString(), 'ether');
     setSwapLoading(true);
     
@@ -131,59 +135,64 @@ export const SwapModal = (props: any): JSX.Element => {
         dispatch(error(errorObj.message));
       }
     }
-    if (props.type === SwapTypes.POLYGON_TO_ETH) {
-      try {
+  };
+
+  const doBurnSeasonToken = async () => {
+    if (address === '' || swapLoading)
+      return;
+
+    const weiAmount = ethWeb3.utils.toWei(props.amount.toString(), 'ether');
+    try {
+      setSwapLoading(true);
+      let changedNetwork = await switchEthereumChain(ToNetwork, true);
+      if (!changedNetwork)
+        return null;
         
-        let posClient = await posClientChild();
-        // if (posClient == null) return;
-        // const erc20Token = posClient.erc20(networks[ToNetwork].addresses[props.season]);
-        // const burnResult = await erc20Token.withdrawStart('10000000000000000000',{
-        //   from: address,
-        //   maxPriorityFeePerGas: 40000000000,
-        //   maxFeePerGas: 60000000000,
-        //   gasLimit: 256000
-        // });
-        // const burnTxHash = await burnResult.getTransactionHash();
-        // console.log('[burnTxHash] : ', burnTxHash);
-        // const burnTxReceipt = await burnResult.getReceipt();
-        // console.log('[burnTxReceipt] : ', burnTxReceipt);
-
-        
-        let changedNetwork = await switchEthereumChain(FromNetwork, true);
-        if (!changedNetwork)
-          return null;
-
-        posClient = await posClientParent();
-        if (posClient == null) return;
-        setProofApi("https://apis.matic.network/");
-        const burnTxHash = '0x72d4e716933a9fca26aafe52ffa3dd7515490d5ec5c3f0f6aa0b4b609512bd48';
-        const erc20RootToken = posClient.erc20(networks[FromNetwork].addresses[props.season], true);
-        console.log('[checked point] : ', await posClient.isCheckPointed(burnTxHash));
-        console.log('[Exist withdraw] : ', await erc20RootToken.isWithdrawExited(burnTxHash));
-        console.log(erc20RootToken);
-
-        const result = await erc20RootToken.withdrawExitFaster(burnTxHash);
-        const txHash = await result.getTransactionHash();
-        const txReceipt = await result.getReceipt();
-
-        setSwapLoading(false);
-        props.onClose(null);
-        props.onSwapAfter();
-        dispatch(info(`deposit  token is finished.`));
-      } catch (errorObj: any) {
-        console.log(errorObj);
-        setSwapLoading(false);
-        props.onClose(null);
-        dispatch(error(errorObj.message));
+      let posClient = await posClientChild();
+      const erc20Token = posClient.erc20(networks[ToNetwork].addresses[props.season]);
+      const burnResult = await erc20Token.withdrawStart(weiAmount, {
+        from: address,
+        maxPriorityFeePerGas: 40000000000,
+        maxFeePerGas: 60000000000,
+        gasLimit: 256000
+      });
+      const burnTxHash = await burnResult.getTransactionHash();
+      console.log('[burnTxHash] : ', burnTxHash);
+      const burnTxReceipt = await burnResult.getReceipt();
+      console.log('[burnTxReceipt] : ', burnTxReceipt);
+      // store to localstorage
+      const transactions = localStorage.getItem('transactions');
+      let txAry = [];
+      if (transactions) {
+        txAry = JSON.parse(transactions);
       }
+      txAry.push(burnTxHash);
+      localStorage.setItem('transactions', JSON.stringify(txAry));
+
+      setSwapLoading(false);
+      props.onClose(null);
+      props.onSwapAfter();
+      dispatch(info(`Burn token is finished.`));
+    } catch (errorObj: any) {
+      setSwapLoading(false);
+      props.onClose(null);
+      dispatch(error(errorObj.message));
     }
+  };
+
+  const doWithdrawSeasonToken = async() => {
+    setOpenBurnModal(true);
   };
 
   const onCloseSwapModal = () => {
     if (!swapLoading)
       props.onClose(null);
   }
-  
+  useEffect(()=> {
+    setBurnBtn(props.type == SwapTypes.POLYGON_TO_ETH);
+    setWithdrawBtn(props.type == SwapTypes.POLYGON_TO_ETH);
+  }, [props.type, props.approved]);
+
   return (
     <Modal open={ props.open } onClose={ onCloseSwapModal }>
       <Fade in={ props.open }>
@@ -205,21 +214,35 @@ export const SwapModal = (props: any): JSX.Element => {
           </Box>
           {
             <Box className="flex justify-center">
-              {
-                swapLoading ?
-                  (<Box ml="5px" className="flex justify-center"><ReactLoading type="spinningBubbles" color="#FACB99"
-                                                                               width={ 50 } height={ 50 }/></Box>)
-                  : (
-                    <Box className="">
-                      {
-                        props.approved === false ? (
-                          <button className={ defaultButtonStyle } onClick={ doApproveSeasonToken }>Approve</button>) : (
-                          <button className={ defaultButtonStyle } onClick={ doSwapSeasonToken }>Swap</button>)
-                      }
-                    </Box>)
-              }
+            {
+              swapLoading ?
+                (<Box ml="5px" className="flex justify-center"><ReactLoading type="spinningBubbles" color="#FACB99"
+                                                                              width={ 50 } height={ 50 }/></Box>)
+                : (
+                  <Box className="flex justify-center text-center">
+                    {
+                      (!props.approved && props.type == SwapTypes.ETH_TO_POLYGON) &&
+                      <button className={ defaultButtonStyle } onClick={ doApproveSeasonToken }>Approve</button>
+                    }
+                    {
+                      (props.approved && props.type == SwapTypes.ETH_TO_POLYGON) &&
+                      <button className={ defaultButtonStyle } onClick={ doDepositeSeasonToken }>Swap</button>
+                    }
+                    {
+                      burnBtn &&
+                      <button className={ defaultButtonStyle } onClick={ doBurnSeasonToken }>Burn</button>
+                    }
+                    {
+                      withdrawBtn &&
+                      <button className={ defaultButtonStyle } onClick={ doWithdrawSeasonToken }>Withdraw</button>
+                    }
+                  </Box>
+                )
+            }
             </Box>
           }
+          
+          <BurnModal open={openBurnModal}  onClose={() => setOpenBurnModal(false) } season={props.season}/>
         </Box>
       </Fade>
     </Modal>
