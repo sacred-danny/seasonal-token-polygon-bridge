@@ -10,10 +10,9 @@ import ReactLoading from "react-loading";
 import { useDispatch } from "react-redux";
 
 import { info, error } from "../core/store/slices/MessagesSlice";
-import { networks, FromNetwork, ToNetwork } from "../networks";
+import { networks, FromNetwork } from "../networks";
 import { useWeb3Context } from "../hooks/web3Context";
-import { ethWeb3, polygonWeb3, SwapTypes, SeasonalTokens} from "../core/constants/base";
-import Web3 from "web3";
+import { polygonWeb3} from "../core/constants/base";
 
 use(Web3ClientPlugin);
 
@@ -46,7 +45,7 @@ export const WithdrawModal = (props: any): JSX.Element => {
     return posClient;
   };
   const doWithdrawSeasonToken = async() => {
-    if (txHash == '') {
+    if (txHash === '') {
         dispatch(error('Input Burn transaction Hash!'));
         return;
     }
@@ -63,8 +62,8 @@ export const WithdrawModal = (props: any): JSX.Element => {
       console.log(erc20RootToken);
 
       const result = await erc20RootToken.withdrawExitFaster(txHash);
-      const transactionHash = await result.getTransactionHash();
-      const txReceipt = await result.getReceipt();
+      // const transactionHash = await result.getTransactionHash();
+      // const txReceipt = await result.getReceipt();
 
       const txIndex = txHashes.findIndex((tx:string) => tx === txHash);
       txHashes.splice(txIndex, 1);

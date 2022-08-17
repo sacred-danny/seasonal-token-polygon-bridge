@@ -1,18 +1,16 @@
 import { Box, Modal, Fade } from "@material-ui/core";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faTimes } from "@fortawesome/free-solid-svg-icons";
-import { POSClient, use, setProofApi  } from "@maticnetwork/maticjs"
+import { POSClient, use } from "@maticnetwork/maticjs"
 import { Web3ClientPlugin } from '@maticnetwork/maticjs-web3'
 import detectEthereumProvider from '@metamask/detect-provider';
 // import HDWalletProvider from "@truffle/hdwallet-provider";
 
 import { useState, useEffect } from "react";
 import ReactLoading from "react-loading";
-import { useDispatch, useSelector } from "react-redux";
-import Web3 from 'web3';
+import { useDispatch } from "react-redux";
 
 import { info, error } from "../core/store/slices/MessagesSlice";
-import { chains } from '../providers';
 import { networks, FromNetwork, ToNetwork } from "../networks";
 import { useWeb3Context } from "../hooks/web3Context";
 import { ethWeb3, polygonWeb3, SwapTypes, SeasonalTokens} from "../core/constants/base";
@@ -23,7 +21,7 @@ use(Web3ClientPlugin);
 
 export const SwapModal = (props: any): any => {
   const dispatch = useDispatch();
-  const {address, provider, switchEthereumChain} = useWeb3Context();
+  const {address, switchEthereumChain} = useWeb3Context();
   const defaultButtonStyle = 'bg-squash hover:bg-artySkyBlue text-white text-1em rounded-7 px-28 py-10 font-medium w-full flex justify-between uppercase items-center mx-10';
   const [swapLoading, setSwapLoading] = useState(false);
   const [burnBtn, setBurnBtn] = useState(false);
@@ -78,7 +76,6 @@ export const SwapModal = (props: any): any => {
     if (address === '')
       return;
     const fromAddress:string = networks[FromNetwork].addresses[props.season];
-    const toAddress:string = networks[ToNetwork].addresses[props.season];
     setSwapLoading(true);
     try {
       const posClient = await posClientParent();
@@ -92,8 +89,8 @@ export const SwapModal = (props: any): any => {
       if (allowance < props.amount) {
         console.log("approving");
         const approveResult = await erc20ParentToken.approve('1000000000000000000000000000000');
-        const txHash = await approveResult.getTransactionHash();
-        const txReceipt = await approveResult.getReceipt();
+        // const txHash = await approveResult.getTransactionHash();
+        // const txReceipt = await approveResult.getReceipt();
         dispatch(info(`Approve token is finished.`)); 
       }
       setSwapLoading(false);
@@ -188,8 +185,8 @@ export const SwapModal = (props: any): any => {
       props.onClose(null);
   }
   useEffect(()=> {
-    setBurnBtn(props.type == SwapTypes.POLYGON_TO_ETH);
-    setWithdrawBtn(props.type == SwapTypes.POLYGON_TO_ETH);
+    setBurnBtn(props.type === SwapTypes.POLYGON_TO_ETH);
+    setWithdrawBtn(props.type === SwapTypes.POLYGON_TO_ETH);
   }, [props.type, props.approved]);
 
   return (
@@ -220,11 +217,11 @@ export const SwapModal = (props: any): any => {
                 : (
                   <Box className="flex justify-center text-center">
                     {
-                      (!props.approved && props.type == SwapTypes.ETH_TO_POLYGON) &&
+                      (!props.approved && props.type === SwapTypes.ETH_TO_POLYGON) &&
                       <button className={ defaultButtonStyle } onClick={ doApproveSeasonToken }>Approve</button>
                     }
                     {
-                      (props.approved && props.type == SwapTypes.ETH_TO_POLYGON) &&
+                      (props.approved && props.type === SwapTypes.ETH_TO_POLYGON) &&
                       <button className={ defaultButtonStyle } onClick={ doDepositeSeasonToken }>Swap</button>
                     }
                     {
