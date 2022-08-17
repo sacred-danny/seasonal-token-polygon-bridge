@@ -16,7 +16,6 @@ import { chains } from '../providers';
 import { networks, FromNetwork, ToNetwork } from "../networks";
 import { useWeb3Context } from "../hooks/web3Context";
 import { ethWeb3, polygonWeb3, SwapTypes, SeasonalTokens} from "../core/constants/base";
-import { BurnModal } from "./BurnTxModal";
 import { WithdrawModal } from "./WithdrawModal";
 
 
@@ -242,7 +241,7 @@ export const SwapModal = (props: any): any => {
             </Box>
           }
           
-          <BurnModal open={openBurnModal}  onClose={() => setOpenBurnModal(false) } season={props.season}/>
+          <WithdrawModal open={openBurnModal}  onClose={() => setOpenBurnModal(false) } season={props.season}/>
         </Box>
       </Fade>
     </Modal>
