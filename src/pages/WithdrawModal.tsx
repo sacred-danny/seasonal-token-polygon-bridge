@@ -71,7 +71,7 @@ export const WithdrawModal = (props: any): JSX.Element => {
       localStorage.setItem('transactions', JSON.stringify(txHashes));
       setSwapLoading(false);
       props.onClose(null);
-      dispatch(info(`deposit  token is finished.`));
+      dispatch(info(`Withdraw token is finished. Please wait 10 mins or more.`));
     } catch (errorObj: any) {
       console.log(errorObj);
       setSwapLoading(false);
