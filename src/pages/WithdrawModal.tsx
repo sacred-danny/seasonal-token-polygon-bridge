@@ -69,7 +69,7 @@ export const WithdrawModal = (props: any): JSX.Element => {
       const txIndex = txHashes.findIndex((tx:string) => tx === txHash);
       txHashes.splice(txIndex, 1);
       console.log(txIndex, txHashes);
-
+      localStorage.setItem('transactions', JSON.stringify(txHashes));
       setSwapLoading(false);
       props.onClose(null);
       dispatch(info(`deposit  token is finished.`));

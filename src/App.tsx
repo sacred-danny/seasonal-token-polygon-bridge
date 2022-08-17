@@ -36,7 +36,7 @@ export const App = (): JSX.Element => {
   const [loadModalOpen, setLoadModalOpen] = useState(false);
   const [swapAmount, setSwapAmount] = useState(0);
   const [swapEthAmount, setSwapEthAmount] = useState(100);
-  const [swapPolygonAmount, setswapPolygonAmount] = useState(10);
+  const [swapPolygonAmount, setswapPolygonAmount] = useState(100);
   const [approved, setApproved] = useState(false);
   // const [etherProvider, setEtherProvider] = useState(any);
   const handleChange = (event: any) => {
@@ -136,10 +136,10 @@ export const App = (): JSX.Element => {
         dispatch(error('Swap amount is bigger than current amount'));
         return;
       }
-      // if (parseFloat(swapPolygonAmount.toString()) < 100) {
-      //   dispatch(error('Minimum swap amount is 100!'));
-      //   return;
-      // }
+      if (parseFloat(swapPolygonAmount.toString()) < 100) {
+        dispatch(error('Minimum swap amount is 100!'));
+        return;
+      }
       setApproved(true);
     }
     setSwapModalOpen(true);
