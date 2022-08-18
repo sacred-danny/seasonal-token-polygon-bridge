@@ -60,3 +60,15 @@
   transform: translate(-50%, -50%);
   border-radius: 5px;
 }
+.messageBox {
+  position: fixed;top: 24px;
+  left: 50%;
+  right: auto;
+  transform: translateX(-50%);
+  z-index: 1400;
+}
+.MuiSnackbar-root{
+  position: relative !important;
+  margin: 5px;;
+  z-index: 1400;
+}

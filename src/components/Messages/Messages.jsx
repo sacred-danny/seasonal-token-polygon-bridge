@@ -25,10 +25,10 @@ function Messages() {
   };
   return (
     <div>
-      <div>
+      <div className="flex flex-col messageBox">
         {messages.items.map((message, index) => {
           return (
-            <Snackbar open={message.open} key={index} anchorOrigin={{vertical: 'top', horizontal: 'center'}} className=" mx-auto">
+            <Snackbar open={message.open} key={index} anchorOrigin={{vertical: 'top', horizontal: 'center'}} className="static mx-auto">
               <Alert
                 variant="filled"
                 icon={false}
