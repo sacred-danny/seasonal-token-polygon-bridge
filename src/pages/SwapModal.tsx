@@ -170,7 +170,7 @@ export const SwapModal = (props: any): any => {
       if (transactions) {
         txAry = JSON.parse(transactions);
       }
-      txAry.push(burnTxHash);
+      txAry.push(burnTxHash.toLowerCase());
       localStorage.setItem('transactions', JSON.stringify(txAry));
 
       setSwapLoading(false);

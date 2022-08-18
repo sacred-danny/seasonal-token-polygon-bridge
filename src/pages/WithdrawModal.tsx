@@ -68,10 +68,13 @@ export const WithdrawModal = (props: any): JSX.Element => {
       const transactionHash = await result.getTransactionHash();
       const txReceipt = await result.getReceipt();
 
-      const txIndex = txHashes.findIndex((tx:string) => tx === txHash);
-      txHashes.splice(txIndex, 1);
-      console.log(txIndex, txHashes);
-      localStorage.setItem('transactions', JSON.stringify(txHashes));
+      const txIndex = txHashes.findIndex((tx:string) => tx.toLowerCase() === txHash.toLowerCase());
+      if (txIndex != -1) {
+        txHashes.splice(txIndex, 1);
+        console.log(txIndex, txHashes);
+        localStorage.setItem('transactions', JSON.stringify(txHashes));
+      }
+
       setWithdrawLoading(false);
       props.onClose(null);
       dispatch(info(`Withdraw token is finished. Please wait 10 mins`));
