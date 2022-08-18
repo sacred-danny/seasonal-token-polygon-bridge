@@ -14,7 +14,6 @@ import { info, error } from "../core/store/slices/MessagesSlice";
 import { networks, FromNetwork, ToNetwork } from "../networks";
 import { useWeb3Context } from "../hooks/web3Context";
 import { ethWeb3, polygonWeb3, SwapTypes, SeasonalTokens} from "../core/constants/base";
-import { WithdrawModal } from "./WithdrawModal";
 
 
 use(Web3ClientPlugin);
@@ -26,7 +25,6 @@ export const SwapModal = (props: any): any => {
   const [swapLoading, setSwapLoading] = useState(false);
   const [burnBtn, setBurnBtn] = useState(false);
   const [withdrawBtn, setWithdrawBtn] = useState(false);
-  const [openBurnModal, setOpenBurnModal] = useState(false);
   const posClientParent =async () => {
     const currentProvider = await detectEthereumProvider();
     const posClient = new POSClient();
@@ -185,7 +183,8 @@ export const SwapModal = (props: any): any => {
   };
 
   const doWithdrawSeasonToken = async() => {
-    setOpenBurnModal(true);
+    props.onClose(null);
+    props.activeWithdraw();
   };
 
   const onCloseSwapModal = () => {
@@ -246,7 +245,6 @@ export const SwapModal = (props: any): any => {
             </Box>
           }
           
-          <WithdrawModal open={openBurnModal}  onClose={() => setOpenBurnModal(false) } season={props.season}/>
         </Box>
       </Fade>
     </Modal>

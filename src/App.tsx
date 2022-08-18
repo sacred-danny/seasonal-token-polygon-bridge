@@ -8,6 +8,7 @@ import useForceUpdate from 'use-force-update';
 import { Layout } from './layout';
 import { SwapModal } from './pages/SwapModal';
 import { LoadingModal } from './pages/LoadingModal';
+import { WithdrawModal } from "./pages/WithdrawModal";
 import { EthTokenSection } from './pages/EthTokenSection';
 import { PolygonTokenSection } from './pages/PolygonTokenSection';
 import { useWeb3Context } from './hooks/web3Context';
@@ -34,6 +35,7 @@ export const App = (): JSX.Element => {
   const [swapType, setSwapType] = useState('');
   const [swapModalOpen, setSwapModalOpen] = useState(false);
   const [loadModalOpen, setLoadModalOpen] = useState(false);
+  const [withdrawModalOpen, setWithdrawModalOpen] = useState(false);
   const [swapAmount, setSwapAmount] = useState(0);
   const [swapEthAmount, setSwapEthAmount] = useState(100);
   const [swapPolygonAmount, setswapPolygonAmount] = useState(100);
@@ -148,6 +150,10 @@ export const App = (): JSX.Element => {
   const closeSwapModal = () => {
     setSwapModalOpen(false);
   };
+  const closeWithdrawModal = () => {
+    setWithdrawModalOpen(false);
+    console.log('ssd');
+  };
   useEffect(() => {
     if (address === '') return;
     Object.keys(SeasonalTokens).forEach((season: string) => {
@@ -178,7 +184,9 @@ export const App = (): JSX.Element => {
           <PolygonTokenSection season={season} onChange={handleChange} swapAmount={swapPolygonAmount} tokenAmounts={seasonTokenAmounts}  onSwapAmountChange = {swapPolygonAmountInput}/>
         </Grid>
       </Grid>
-      <SwapModal type={ swapType } season={season} open={ swapModalOpen } onClose={ closeSwapModal } amount={swapAmount} onSwapAfter={() => getCurrentAmount(season) } seasonTokenAmounts={seasonTokenAmounts} approved={approved} setApproved={setApproved} />
+      <SwapModal type={ swapType } season={season} open={ swapModalOpen } onClose={ closeSwapModal } amount={swapAmount} onSwapAfter={() => getCurrentAmount(season) } seasonTokenAmounts={seasonTokenAmounts} approved={approved} setApproved={setApproved} activeWithdraw={() => setWithdrawModalOpen(true)}/>
+      
+      <WithdrawModal open={withdrawModalOpen}  onClose={ closeWithdrawModal } season={season}/>
       <Messages />
       <LoadingModal open={ loadModalOpen }/>
     </Layout>

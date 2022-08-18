@@ -54,6 +54,7 @@ export const WithdrawModal = (props: any): JSX.Element => {
       let changedNetwork = await switchEthereumChain(FromNetwork, true);
       if (!changedNetwork){
         setWithdrawLoading(false);
+        props.onClose(null);
         return null;
       }
 
@@ -106,28 +107,17 @@ export const WithdrawModal = (props: any): JSX.Element => {
             <label className="text-30 font-bold flex justify-center items-center">Input Burn Transaction Hash</label>
             <button onClick={ onCloseSwapModal } className="absolute top-20 right-20"><FontAwesomeIcon icon={ faTimes }/></button>
           </Box>
-          {
-            <Box className="w-full">
-            {
+          <Box className="w-full">
+            <Box className="text-center flex flex-col items-center justify-center">                   
+              <input className="border-2 rounded-5 w-full p-5 m-10" type="text" value={txHash} onChange = {(e:any) => setTxHash(e.target.value)}/>
+              {
               withdrawLoading ?
                 (<Box ml="5px" className="flex justify-center"><ReactLoading type="spinningBubbles" color="#FACB99"
                                                                               width={ 50 } height={ 50 }/></Box>)
-                : (
-                  <Box className="text-center flex flex-col items-center justify-center">                   
-                    <input className="border-2 rounded-5 w-full p-5 m-10" type="text" value={txHash} onChange = {(e:any) => setTxHash(e.target.value)}/>
-                    {/* <select className="border-2 rounded-5 w-full p-5 m-10" value={txHash} onChange = {(e:any) => setTxHash(e.target.value)}>
-                        {
-                            txHashes.map((tx:any, index) => {
-                                return <option key={index}>{tx}</option>
-                            })
-                        }
-                    </select> */}
-                    <button className={ defaultButtonStyle + ' w-150' } onClick={ doWithdrawSeasonToken }>Confirm</button>
-                  </Box>
-                )
-            }
+                : (<button className={ defaultButtonStyle + ' w-150' } onClick={ doWithdrawSeasonToken }>Confirm</button>)
+              }
             </Box>
-          }
+          </Box>
         </Box>
       </Fade>
     </Modal>
